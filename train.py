@@ -27,7 +27,7 @@ def main(config):
 
     # build model architecture, then print to console/
     # 문제 : model 에 너무 많은 정보가 들어가 있는데, 이를 어떻게 config파일을 표현할 것인가?
-    loss_ftn = config.
+    loss_ftn = config.init_ftn()
     model = config.init_obj("arch", module_arch)
     # logger.info(model)
 
