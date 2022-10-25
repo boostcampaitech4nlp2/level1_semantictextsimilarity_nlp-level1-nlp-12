@@ -11,19 +11,24 @@ class Model(pl.LightningModule):
         model_name: str,
         lr: float,
         loss_func: Callable,
+        metric: Callable,
+        optimizer: Callable,
+        lr_scheduler: Callable,
     ):
         super().__init__()
         self.save_hyperparameters()
 
         self.model_name = model_name
         self.lr = lr
-
+        self.metric = metric
+        self.optimizer = optimizer
+        self.lr_scheduler = lr_scheduler
+        # Loss 계산을 위해 사용될 L1Loss를 호출합니다.
+        self.loss_func = loss_func
         # 사용할 모델을 호출합니다.
         self.plm = transformers.AutoModelForSequenceClassification.from_pretrained(
             pretrained_model_name_or_path=model_name, num_labels=1
         )
-        # Loss 계산을 위해 사용될 L1Loss를 호출합니다.
-        self.loss_func = torch.nn.L1Loss()
 
     def forward(self, x):
         x = self.plm(x)["logits"]
@@ -46,7 +51,7 @@ class Model(pl.LightningModule):
 
         self.log(
             "val_pearson",
-            torchmetrics.functional.pearson_corrcoef(logits.squeeze(), y.squeeze()),
+            self.metric(logits.squeeze(), y.squeeze()),
         )
 
         return loss
@@ -57,7 +62,7 @@ class Model(pl.LightningModule):
 
         self.log(
             "test_pearson",
-            torchmetrics.functional.pearson_corrcoef(logits.squeeze(), y.squeeze()),
+            self.metric(logits.squeeze(), y.squeeze()),
         )
 
     def predict_step(self, batch, batch_idx):
@@ -67,5 +72,6 @@ class Model(pl.LightningModule):
         return logits.squeeze()
 
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(self.parameters(), lr=self.lr)
-        return optimizer
+        optimizer = self.optimizer(self.parameters(), lr=self.lr)
+        lr_scheduler = self.lr_scheduler(optimizer)
+        return [optimizer], [lr_scheduler]

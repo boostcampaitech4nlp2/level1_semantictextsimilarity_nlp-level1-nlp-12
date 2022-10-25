@@ -1,5 +1,7 @@
 {
-    "name": "STS",
+    "wandb_project": "boostcamp_practice",
+    "name": "shchoi",
+    "info": "start",
     "n_gpu": 1,
     "arch": {
         "type": "Model",
@@ -8,6 +10,7 @@
             "lr": 1e-5
         }
     },
+    "metric": "pearson_corrcoef",
     "loss": "L1_loss",
     "data_loader": {
         "type": "DataLoader",
@@ -37,12 +40,11 @@
         }
     },
     "trainer": {
-        "epochs": 100,
-        "save_dir": "saved/",
-        "save_period": 1,
-        "verbosity": 2,
-        "monitor": "min val_loss",
-        "early_stop": 10,
-        "tensorboard": true
+        "type": "Trainer",
+        "args": {
+            "max_epochs": 100,
+            "gpus": 1,
+            "log_every_n_steps": 1
+        }
     }
 }

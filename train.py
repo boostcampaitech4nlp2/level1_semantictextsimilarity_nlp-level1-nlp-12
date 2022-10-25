@@ -1,50 +1,70 @@
 import argparse
 import collections
 import torch
-import numpy as np
 import data_loader.data_loaders as module_data
+import model.loss as module_loss
+import model.metric as module_metric
 import model.model as module_arch
-import model.loss as loss
+import trainer.trainer as module_trainer
 from parse_config import ConfigParser
-import pytorch_lightning as pl
+from trainer import Trainer
 from utils import prepare_device
+import pytorch_lightning as pl
+from pytorch_lightning.loggers import WandbLogger
 
+## https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
 
 # fix random seeds for reproducibility
-SEED = 12
+SEED = 42
+pl.seed_everything(SEED, workers=True)
 torch.manual_seed(SEED)
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
-np.random.seed(SEED)
 
 
 def main(config):
-    logger = config.get_logger("train")
-
+    exp_name = "_".join(
+        [
+            config["name"],
+            config["info"],
+            config["optimizer"]["type"],
+            config["lr_scheduler"]["type"],
+            str(config["optimizer"]["args"]["lr"]),
+            str(config["data_loader"]["args"]["batch_size"]),
+        ]
+    )
+    wandb_logger = WandbLogger(name=exp_name, project=config["wandb_project"])
     # setup data_loader instances
-    data_loader = config.init_obj("data_loader", module_data)
-    valid_data_loader = data_loader.split_validation()
+    data_loader = config.init_obj(
+        "data_loader", module_data
+    )  # contains train/dev/test dataloaders
 
-    # build model architecture, then print to console/
-    # 문제 : model 에 너무 많은 정보가 들어가 있는데, 이를 어떻게 config파일을 표현할 것인가?
-    loss_ftn = config.init_ftn()
-    model = config.init_obj("arch", module_arch)
-    # logger.info(model)
+    # get function handles of loss and metrics
+    loss_func = getattr(module_loss, config["loss"])
+    metric = getattr(module_metric, config["metric"])
 
-    # # prepare for (multi-device) GPU training
-    device, device_ids = prepare_device(config["n_gpu"])
-    model = model.to(device)
-    if len(device_ids) > 1:
-        model = torch.nn.DataParallel(model, device_ids=device_ids)
-    trainer = pl.Trainer(
-        model,
-        config=config,
-        device=device,
-        data_loader=data_loader,
-        valid_data_loader=valid_data_loader,
+    # build optimizer, learning rate scheduler. delete every lines containing lr_scheduler for disabling scheduler
+    optimizer = config.init_ftn(
+        "optimizer", torch.optim
+    )  # partial object. Will get an model instance in model.py
+    lr_scheduler = config.init_ftn("lr_scheduler", torch.optim.lr_scheduler)
+
+    # build model architecture, then print to console
+    model = config.init_ftn("arch", module_arch)
+    model = model(
+        loss_func=loss_func,
+        metric=metric,
+        optimizer=optimizer,
+        lr_scheduler=lr_scheduler,
     )
 
-    # trainer.train()
+    # gpu가 없으면 'gpus=0'을, gpu가 여러개면 'gpus=4'처럼 사용하실 gpu의 개수를 입력해주세요
+    trainer = config.init_ftn("trainer", module_trainer)
+    trainer = trainer(wandb_logger=wandb_logger)
+    trainer.fit(model=model, datamodule=data_loader)
+    trainer.test(model=model, datamodule=data_loader)
+
+    # save model
 
 
 if __name__ == "__main__":
