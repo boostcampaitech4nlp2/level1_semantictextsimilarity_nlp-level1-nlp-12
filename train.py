@@ -4,6 +4,7 @@ import torch
 import numpy as np
 import data_loader.data_loaders as module_data
 import model.model as module_arch
+import model.loss as loss
 from parse_config import ConfigParser
 import pytorch_lightning as pl
 from utils import prepare_device
@@ -26,6 +27,7 @@ def main(config):
 
     # build model architecture, then print to console/
     # 문제 : model 에 너무 많은 정보가 들어가 있는데, 이를 어떻게 config파일을 표현할 것인가?
+    loss_ftn = config.
     model = config.init_obj("arch", module_arch)
     # logger.info(model)
 

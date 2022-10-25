@@ -8,6 +8,7 @@
             "lr": 1e-5
         }
     },
+    "loss": "L1_loss",
     "data_loader": {
         "type": "DataLoader",
         "args": {

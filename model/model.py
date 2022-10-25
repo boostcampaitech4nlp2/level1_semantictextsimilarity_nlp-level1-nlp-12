@@ -1,3 +1,4 @@
+from typing import Callable
 import torch
 import transformers
 import torchmetrics
@@ -7,9 +8,9 @@ import pytorch_lightning as pl
 class Model(pl.LightningModule):
     def __init__(
         self,
-        model_name,
-        lr,
-        loss_func,
+        model_name: str,
+        lr: float,
+        loss_func: Callable,
     ):
         super().__init__()
         self.save_hyperparameters()
