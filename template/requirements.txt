@@ -1,0 +1,5 @@
+torch>=1.1
+numpy
+pandas
+tqdm
+tensorboard>=1.14
