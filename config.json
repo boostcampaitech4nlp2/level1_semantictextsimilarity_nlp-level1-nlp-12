@@ -4,7 +4,9 @@
     "n_gpu": 1,
     "model": {
         "type": "Roberta",
-        "args": {}
+        "args": {
+            "architecture": "AutoModelForSequenceClassification"
+        }
     },
     "tokenizer": {
         "type": "PretrainedTokenizer",

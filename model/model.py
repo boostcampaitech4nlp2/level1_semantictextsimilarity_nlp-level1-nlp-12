@@ -1,18 +1,28 @@
 from base import BaseModel
 import torch.nn as nn
-from transformers import AutoModelForSequenceClassification
+import transformers
+#from transformers import AutoModelForSequenceClassification
 
 class Roberta(BaseModel):
-    def __init__(self, checkpoint, criterion, metrics, optimizer, lr_scheduler=None):
+    def __init__(
+        self,
+        checkpoint,
+        criterion,
+        metrics,
+        optimizer,
+        lr_scheduler,
+        **kwargs
+    ):
         super().__init__()
         self.save_hyperparameters()
-        
-        # pretrained model name or checkpoint
+
+        # pretrained model name or checkpoint path
         self.checkpoint = checkpoint 
 
-        # 사용할 모델을 호출합니다.
-        self.lm = AutoModelForSequenceClassification.from_pretrained(
-            pretrained_model_name_or_path=checkpoint, num_labels=1
+        # get pretrained model from huggingface hub
+        self.lm = getattr(transformers, kwargs.pop('architecture')).from_pretrained(
+            pretrained_model_name_or_path=checkpoint,
+            num_labels=1
         )
 
         # Loss 계산을 위해 사용될 L1Loss를 호출합니다.
