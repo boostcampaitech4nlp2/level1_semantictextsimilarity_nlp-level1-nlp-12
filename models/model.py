@@ -4,6 +4,7 @@ import torchmetrics
 from transformers import AutoModelForSequenceClassification
 
 from models.optimizer import get_optimizer, get_scheduler
+from models.loss_function import get_loss_func
 
 
 class Model(pl.LightningModule):
@@ -19,7 +20,8 @@ class Model(pl.LightningModule):
             pretrained_model_name_or_path=self.model_name, num_labels=1
         )
 
-        self.loss_func = torch.nn.L1Loss()
+        # self.loss_func = torch.nn.L1Loss()
+        self.loss_func = get_loss_func(config)
 
     def forward(self, x):
         x = self.model(x)["logits"]

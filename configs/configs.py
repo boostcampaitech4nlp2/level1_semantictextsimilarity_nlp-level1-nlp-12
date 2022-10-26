@@ -7,15 +7,18 @@ parser.add_argument(
     "--wandb_project", default="boostcamp_practice", type=str, help="wandb 레포지토리 이름"
 )
 parser.add_argument("--name", default="kbh", type=str, help="작성자 이름")
-parser.add_argument("--info", default="Baseline", type=str, help="추가한 작업 정보")
+parser.add_argument("--info", default="", type=str, help="추가한 작업 정보")
 
 ### Model ###
 parser.add_argument(
     "--model_name",
     type=str,
-    default="klue/roberta-small",
-    help="klue/roberta-small | 다른 이름",
+    default="beomi/KcELECTRA-base",
+    help="klue/roberta-small | beomi/KcELECTRA-base",
 )
+
+### Loss Function ###
+parser.add_argument("--loss_func", type=str, default="L1Loss", help="L1Loss | ...")
 
 ### HyperParmeters ###
 parser.add_argument("--batch_size", default=32, type=int)
