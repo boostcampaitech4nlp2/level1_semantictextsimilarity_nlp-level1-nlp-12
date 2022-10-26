@@ -1,21 +1,26 @@
 {
-    "name": "RoBERTa_baseline",
+    "name": "dev_Roberta_baseline",
+    "checkpoint": "klue/roberta-small",
     "n_gpu": 1,
     "model": {
         "type": "Roberta",
+        "args": {}
+    },
+    "tokenizer": {
+        "type": "PretrainedTokenizer",
         "args": {
-            "checkpoint": "klue/roberta-small"
+            "max_len":160
         }
     },
     "data_loader": {
-        "type": "Dataloader",
+        "type": "STS_Dataloader",
         "args":{
             "train_path": "data/train.csv",
             "dev_path": "data/dev.csv",
             "test_path": "data/dev.csv",
             "predict_path": "data/test.csv",
             "batch_size": 16,
-            "num_workers":8,
+            "num_workers": 8,
             "shuffle": true
         }
     },
@@ -27,8 +32,10 @@
             "amsgrad": false
         }
     },
-    "loss": "l1_loss",
-    "metric":  "pearson_corrcoef",
+    "loss": "l1_loss", 
+    "metrics":  [
+        "pearson_corrcoef"
+    ],
     "lr_scheduler": {
         "type": "StepLR",
         "args": {
@@ -42,7 +49,7 @@
             "gpus":1,
             "accelerator":"gpu",
             "devices":1,
-            "max_epochs":1,
+            "max_epochs":3,
             "log_every_n_steps":10,
             "enable_checkpointing":true,
             "default_root_dir": "saved/"

@@ -16,4 +16,4 @@ For Boostcamp 4기Competitions--*NLP* trac.
 
 2. update logger  
 
-3. update argparser
+3. add .add-special-tokens option for tokenizer and do model.resize... depending on the model's architecture.

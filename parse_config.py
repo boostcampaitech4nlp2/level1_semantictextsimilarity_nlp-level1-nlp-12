@@ -48,15 +48,16 @@ class ConfigParser:
         }"""
 
     @classmethod
-    def from_args(cls, args, options=''):
+    def from_args(cls, parser, options=''):
         """
         Initialize this class from some cli arguments. Used in train, test.
         """
         for opt in options:
-            args.add_argument(*opt.flags, default=None, type=opt.type)
-        if not isinstance(args, tuple):
-            args = args.parse_args()
-
+            parser.add_argument(*opt.flags, default=None, type=opt.type)
+        if not isinstance(parser, tuple):
+            args = parser.parse_args()
+        else:
+            args = parser
         if args.device is not None:
             os.environ["CUDA_VISIBLE_DEVICES"] = args.device
         if args.resume is not None:

@@ -1,7 +1,6 @@
 #from base import BaseDataLoader
 import torch
 import pytorch_lightning as pl
-import transformers
 import pandas as pd
 from tqdm.auto import tqdm
 
@@ -24,10 +23,11 @@ class Dataset(torch.utils.data.Dataset):
         return len(self.inputs)
 
 
-class Dataloader(pl.LightningDataModule):
-    def __init__(self, checkpoint, batch_size, shuffle, num_workers, train_path, dev_path, test_path, predict_path):
+class STS_Dataloader(pl.LightningDataModule):
+    def __init__(self, tokenizer, batch_size, shuffle, num_workers, train_path, dev_path, test_path, predict_path):
         super().__init__()
-        self.checkpoint = checkpoint # pretrained model name or checkpoint
+
+        self.tokenizer = tokenizer
         self.batch_size = batch_size 
         self.shuffle = shuffle
         self.num_workers = num_workers
@@ -41,8 +41,7 @@ class Dataloader(pl.LightningDataModule):
         self.val_dataset = None
         self.test_dataset = None
         self.predict_dataset = None
-
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained(checkpoint, max_length=160)
+        
         self.target_columns = ['label']
         self.delete_columns = ['id']
         self.text_columns = ['sentence_1', 'sentence_2']
