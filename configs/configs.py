@@ -4,10 +4,10 @@ parser = argparse.ArgumentParser(description="pstage")
 
 ### WandB ###
 parser.add_argument(
-    "--wandb_project", default="boostcamp_practice", type=str, help="wandb 레포지토리 이름"
+    "--wandb_project", default="sts", type=str, help="wandb 레포지토리 이름"
 )
 parser.add_argument("--name", default="kbh", type=str, help="작성자 이름")
-parser.add_argument("--info", default="", type=str, help="추가한 작업 정보")
+parser.add_argument("--info", default="AEDA", type=str, help="추가한 작업 정보")
 
 ### Model ###
 parser.add_argument(
@@ -38,7 +38,7 @@ parser.add_argument(
 )
 
 ### Data Path ###
-parser.add_argument("--train_path", default="./data/raw_data/train.csv")
+parser.add_argument("--train_path", default="./data/aug_data/train_auged.csv")
 parser.add_argument("--dev_path", default="./data/raw_data/dev.csv")
 parser.add_argument("--test_path", default="./data/raw_data/dev.csv")
 parser.add_argument("--predict_path", default="./data/raw_data/test.csv")
