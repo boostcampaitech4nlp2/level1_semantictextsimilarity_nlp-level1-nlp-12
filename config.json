@@ -1,8 +1,9 @@
 {
-    "wandb_project": "boostcamp_practice",
+    "wandb_project": "shchoi",
     "name": "shchoi",
     "info": "start",
     "logger_dir": "/opt/ml/level1_nlp_12",
+    "model_save_path": "/opt/ml/level1_nlp_12/model_save/model.pt",
     "n_gpu": 1,
     "arch": {
         "type": "Model",

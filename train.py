@@ -7,8 +7,6 @@ import model.metric as module_metric
 import model.model as module_arch
 import trainer.trainer as module_trainer
 from parse_config import ConfigParser
-from trainer import Trainer
-from utils import prepare_device
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import WandbLogger
 import os
@@ -70,7 +68,7 @@ def main(config):
     trainer.test(model=model, datamodule=data_loader)
 
     # save model
-    torch.save(model, "model.pt")
+    torch.save(obj=model, f=config["model_save_path"])
 
 
 if __name__ == "__main__":
