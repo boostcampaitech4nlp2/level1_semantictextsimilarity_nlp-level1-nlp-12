@@ -5,9 +5,11 @@ import data_loader.data_loaders as module_data
 import model.loss as module_loss
 import model.metric as module_metric
 import model.model as module_model
-#import trainer.trainer as module_trainer
+import trainer.trainer as module_trainer
 from parse_config import ConfigParser
 import pytorch_lightning as pl
+from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning.callbacks import ModelCheckpoint
 #from trainer import Trainer
 #from utils import prepare_device
 ## https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
@@ -20,7 +22,6 @@ torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
 def main(config):
-
     # setup data_loader instances
     dataloader = config.init_obj('data_loader', module_data, checkpoint=config['model']['args']['checkpoint']) # contains train/dev/test dataloaders
 
@@ -35,11 +36,15 @@ def main(config):
     # build model architecture, then print to console
     model = config.init_obj('model', module_model, criterion=criterion, metric=metric, optimizer=optimizer, lr_scheduler=lr_scheduler)
 
+    # custom wandb logger & checkpoint_callback
+    checkpoint_callback = ModelCheckpoint(dirpath="./saved/model/", monitor="val_loss")
+    wandb_config = config['wandb']
+    wandb_logger = WandbLogger(name=wandb_config['name'], project=wandb_config['project'], save_dir=wandb_config['save_dir'])
+
     # gpu가 없으면 'gpus=0'을, gpu가 여러개면 'gpus=4'처럼 사용하실 gpu의 개수를 입력해주세요
-    #trainer = config.init_obj('Trainer', module_trainer)
-    trainer = pl.Trainer(config['trainer'])
+    trainer = config.init_obj('trainer', module_trainer, logger=wandb_logger, callbacks=[checkpoint_callback])
     trainer.fit(model=model, datamodule=dataloader)
-    trainer.test(model=model, datamodule=dataloader)    
+    #trainer.test(model=model, datamodule=dataloader)    
     
 
 if __name__ == '__main__':

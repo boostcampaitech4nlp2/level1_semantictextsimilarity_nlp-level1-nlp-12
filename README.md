@@ -10,6 +10,8 @@ For Boostcamp 4기Competitions--*NLP* trac.
 
 ## TO-Do
 
+0. fix config.json format and corresponding syntax in train.py so that the settings are automatically displayed on wandb.  
+
 1. update requirements.txt
 
 2. update logger  

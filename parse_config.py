@@ -22,8 +22,8 @@ class ConfigParser:
         self._config = _update_config(config, modification)
         self.resume = resume
 
-        # set save_dir where trained model and log will be saved.
-        save_dir = Path("./saved")#Path(self.config['trainer']['save_dir'])
+        """# set save_dir where trained model and log will be saved.
+        save_dir = Path("./saved") #Path(self.config['trainer']['save_dir'])
 
         exper_name = self.config['name']
         if run_id is None: # use timestamp as default run-id
@@ -45,7 +45,7 @@ class ConfigParser:
             0: logging.WARNING,
             1: logging.INFO,
             2: logging.DEBUG
-        }
+        }"""
 
     @classmethod
     def from_args(cls, args, options=''):
