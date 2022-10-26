@@ -4,15 +4,16 @@ import torch
 import data_loader.data_loaders as module_data
 import model.loss as module_loss
 import model.metric as module_metric
-import model.model as module_arch
-import trainer.trainer as module_trainer
+import model.model as module_model
+#import trainer.trainer as module_trainer
 from parse_config import ConfigParser
-from trainer import Trainer
-from utils import prepare_device
+import pytorch_lightning as pl
+#from trainer import Trainer
+#from utils import prepare_device
 ## https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
 
 # fix random seeds for reproducibility
-SEED = 123
+SEED = 12
 pl.seed_everything(SEED, workers=True)
 torch.manual_seed(SEED)
 torch.backends.cudnn.deterministic = True
@@ -21,7 +22,7 @@ torch.backends.cudnn.benchmark = False
 def main(config):
 
     # setup data_loader instances
-    data_loader = config.init_obj('data_loader', module_data) # contains train/dev/test dataloaders
+    dataloader = config.init_obj('data_loader', module_data, checkpoint=config['model']['args']['checkpoint']) # contains train/dev/test dataloaders
 
     # get function handles of loss and metrics
     criterion = getattr(module_loss, config['loss']) 
@@ -32,21 +33,19 @@ def main(config):
     lr_scheduler = config.init_ftn('lr_scheduler', torch.optim.lr_scheduler)
 
     # build model architecture, then print to console
-    model = config.init_obj('arch', module_arch, criterion=criterion, metric=metric, optimizer=optimizer, lr_scheduler=lr_scheduler)
+    model = config.init_obj('model', module_model, criterion=criterion, metric=metric, optimizer=optimizer, lr_scheduler=lr_scheduler)
 
     # gpu가 없으면 'gpus=0'을, gpu가 여러개면 'gpus=4'처럼 사용하실 gpu의 개수를 입력해주세요
-    trainer = config.init_obj('trainer', module_trainer)
+    #trainer = config.init_obj('Trainer', module_trainer)
+    trainer = pl.Trainer(config['trainer'])
     trainer.fit(model=model, datamodule=dataloader)
     trainer.test(model=model, datamodule=dataloader)    
-
-    # save model
-    torch.save(model, )
     
 
 if __name__ == '__main__':
-    args = argparse.ArgumentParser(description='PyTorch Template')
-    args.add_argument('-c', '--config', default=None, type=str,
-                      help='config file path (default: None)')
+    args = argparse.ArgumentParser(description='PyTorch-Lightning Template')
+    args.add_argument('-c', '--config', default='./config.json', type=str,
+                      help='config file path (default: "./config.json")')
     args.add_argument('-r', '--resume', default=None, type=str,
                       help='path to latest checkpoint (default: None)')
     args.add_argument('-d', '--device', default=None, type=str,

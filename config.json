@@ -1,11 +1,10 @@
 {
     "name": "RoBERTa_baseline",
     "n_gpu": 1,
-    "arch": {
-        "type": "Model",
+    "model": {
+        "type": "Roberta",
         "args": {
-            "checkpoint": "klue/roberta-small",
-            "criterion": "l1_loss"
+            "checkpoint": "klue/roberta-small"
         }
     },
     "data_loader": {
@@ -16,8 +15,8 @@
             "test_path": "data/dev.csv",
             "predict_path": "data/test.csv",
             "batch_size": 16,
-            "shuffle": true,
-            "num_workers": 2
+            "num_workers":8,
+            "shuffle": true
         }
     },
     "optimizer": {
@@ -33,15 +32,16 @@
     "lr_scheduler": {
         "type": "StepLR",
         "args": {
-            "step_size": 10,
+            "step_size": 50,
             "gamma": 0.1
         }
     },
     "trainer": {
         "gpus":1,
-        "max_epochs":10,
+        "max_epochs":1,
         "log_every_n_steps":10,
         "enable_checkpointing":true,
+        "default_root_dir": "saved/",
         "weights_save_path": "saved/"
     }
 }

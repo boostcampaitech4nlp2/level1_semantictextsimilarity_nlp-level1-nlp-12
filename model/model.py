@@ -2,13 +2,12 @@ from base import BaseModel
 import torch.nn as nn
 from transformers import AutoModelForSequenceClassification
 
-class Model(BaseModel):
-    def __init__(self, checkpoint, criterion, metric, optimizer, lr_scheduler):
+class Roberta(BaseModel):
+    def __init__(self, checkpoint, criterion, metric, optimizer, lr_scheduler=None):
         super().__init__()
         self.save_hyperparameters()
 
         self.checkpoint = checkpoint # pretrained model name or checkpoint
-        self.lr = lr
 
         # 사용할 모델을 호출합니다.
         self.plm = AutoModelForSequenceClassification.from_pretrained(
@@ -60,8 +59,11 @@ class Model(BaseModel):
 
     def configure_optimizers(self):
         optimizer = self.optimizer(params=self.parameters())
-        lr_scheduler = self.lr_scheduler(optimizer=optimizer)
-        return {
-            "optimizer": optimizer,
-            "lr_scheduler": lr_scheduler
-        }
+        if self.lr_scheduler:
+            lr_scheduler = self.lr_scheduler(optimizer=optimizer)
+            return {
+                "optimizer": optimizer,
+                "lr_scheduler": lr_scheduler
+            }
+        else:
+            return optimizer

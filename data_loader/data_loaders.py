@@ -1,6 +1,9 @@
-from base import BaseDataLoader
+#from base import BaseDataLoader
 import torch
 import pytorch_lightning as pl
+import transformers
+import pandas as pd
+from tqdm.auto import tqdm
 
 
 class Dataset(torch.utils.data.Dataset):
@@ -22,11 +25,12 @@ class Dataset(torch.utils.data.Dataset):
 
 
 class Dataloader(pl.LightningDataModule):
-    def __init__(self, checkpoint, batch_size, shuffle, train_path, dev_path, test_path, predict_path):
+    def __init__(self, checkpoint, batch_size, shuffle, num_workers, train_path, dev_path, test_path, predict_path):
         super().__init__()
         self.checkpoint = checkpoint # pretrained model name or checkpoint
         self.batch_size = batch_size 
         self.shuffle = shuffle
+        self.num_workers = num_workers
 
         self.train_path = train_path
         self.dev_path = dev_path
@@ -66,8 +70,8 @@ class Dataloader(pl.LightningDataModule):
 
         return inputs, targets
 
-    def prepare_data(self):
-        raise NotImplementedError
+    #def prepare_data(self):
+    # if there is data to download
 
     def setup(self, stage='fit'):
         if stage == 'fit':
@@ -95,10 +99,10 @@ class Dataloader(pl.LightningDataModule):
             self.predict_dataset = Dataset(predict_inputs, [])
 
     def train_dataloader(self):
-        return torch.utils.data.DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=args.shuffle)
+        return torch.utils.data.DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=self.shuffle, num_workers=self.num_workers)
 
     def val_dataloader(self):
-        return torch.utils.data.DataLoader(self.val_dataset, batch_size=self.batch_size)
+        return torch.utils.data.DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers)
 
     def test_dataloader(self):
         return torch.utils.data.DataLoader(self.test_dataset, batch_size=self.batch_size)
