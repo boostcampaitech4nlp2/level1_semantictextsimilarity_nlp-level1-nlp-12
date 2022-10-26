@@ -7,7 +7,7 @@ parser.add_argument(
     "--wandb_project", default="boostcamp_practice", type=str, help="wandb 레포지토리 이름"
 )
 parser.add_argument("--name", default="kbh", type=str, help="작성자 이름")
-parser.add_argument("--info", default="데이터증강", type=str, help="추가한 작업 정보")
+parser.add_argument("--info", default="Baseline", type=str, help="추가한 작업 정보")
 
 ### Model ###
 parser.add_argument(
@@ -18,8 +18,8 @@ parser.add_argument(
 )
 
 ### HyperParmeters ###
-parser.add_argument("--batch_size", default=16, type=int)
-parser.add_argument("--max_epoch", default=3, type=int)
+parser.add_argument("--batch_size", default=32, type=int)
+parser.add_argument("--max_epoch", default=30, type=int)
 parser.add_argument("--shuffle", default=True)
 
 ### optimizer ###
