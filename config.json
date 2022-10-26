@@ -2,6 +2,7 @@
     "wandb_project": "boostcamp_practice",
     "name": "shchoi",
     "info": "start",
+    "logger_dir": "/opt/ml/level1_nlp_12",
     "n_gpu": 1,
     "arch": {
         "type": "Model",
@@ -21,7 +22,8 @@
             "train_path": "/opt/ml/data/train.csv",
             "dev_path": "/opt/ml/data/dev.csv",
             "test_path": "/opt/ml/data/dev.csv",
-            "predict_path": "/opt/ml/data/test.csv"
+            "predict_path": "/opt/ml/data/test.csv",
+            "num_workers": 8
         }
     },
     "optimizer": {
@@ -42,8 +44,9 @@
     "trainer": {
         "type": "Trainer",
         "args": {
-            "max_epochs": 100,
-            "gpus": 1,
+            "max_epochs": 5,
+            "accelerator": "gpu",
+            "devices": 1,
             "log_every_n_steps": 1
         }
     }

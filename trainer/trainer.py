@@ -3,9 +3,12 @@ from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
 
 class Trainer(pl.Trainer):
-    def __init__(self, gpus, max_epochs, log_every_n_steps, wandb_logger):
+    def __init__(
+        self, accelerator, devices, max_epochs, log_every_n_steps, wandb_logger
+    ):
         super(Trainer, self).__init__(
-            gpus=gpus,
+            accelerator=accelerator,
+            devices=devices,
             max_epochs=max_epochs,
             log_every_n_steps=log_every_n_steps,
             logger=wandb_logger,

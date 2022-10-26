@@ -11,11 +11,14 @@ from trainer import Trainer
 from utils import prepare_device
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import WandbLogger
+import os
 
 ## https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
 
 # fix random seeds for reproducibility
 SEED = 42
+
+os.environ["TOKENIZERS_PARALLELISM"] = "false"  # 토크나이저 경고떠서 추가한 부분
 pl.seed_everything(SEED, workers=True)
 torch.manual_seed(SEED)
 torch.backends.cudnn.deterministic = True
@@ -33,7 +36,9 @@ def main(config):
             str(config["data_loader"]["args"]["batch_size"]),
         ]
     )
-    wandb_logger = WandbLogger(name=exp_name, project=config["wandb_project"])
+    wandb_logger = WandbLogger(
+        save_dir=config["logger_dir"], name=exp_name, project=config["wandb_project"]
+    )
     # setup data_loader instances
     data_loader = config.init_obj(
         "data_loader", module_data
@@ -65,6 +70,7 @@ def main(config):
     trainer.test(model=model, datamodule=data_loader)
 
     # save model
+    torch.save(model, "model.pt")
 
 
 if __name__ == "__main__":

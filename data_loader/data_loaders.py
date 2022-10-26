@@ -33,6 +33,7 @@ class DataLoader(pl.LightningDataModule):
         dev_path,
         test_path,
         predict_path,
+        num_workers,
     ):
         super().__init__()
         self.model_name = model_name
@@ -55,6 +56,7 @@ class DataLoader(pl.LightningDataModule):
         self.target_columns = ["label"]
         self.delete_columns = ["id"]
         self.text_columns = ["sentence_1", "sentence_2"]
+        self.num_workers = num_workers
 
     def tokenizing(self, dataframe):
         data = []
@@ -112,18 +114,25 @@ class DataLoader(pl.LightningDataModule):
 
     def train_dataloader(self):
         return torch.utils.data.DataLoader(
-            self.train_dataset, batch_size=self.batch_size, shuffle=self.shuffle
+            self.train_dataset,
+            batch_size=self.batch_size,
+            shuffle=self.shuffle,
+            num_workers=self.num_workers,
         )
 
     def val_dataloader(self):
-        return torch.utils.data.DataLoader(self.val_dataset, batch_size=self.batch_size)
+        return torch.utils.data.DataLoader(
+            self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers
+        )
 
     def test_dataloader(self):
         return torch.utils.data.DataLoader(
-            self.test_dataset, batch_size=self.batch_size
+            self.test_dataset, batch_size=self.batch_size, num_workers=self.num_workers
         )
 
     def predict_dataloader(self):
         return torch.utils.data.DataLoader(
-            self.predict_dataset, batch_size=self.batch_size
+            self.predict_dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
         )
