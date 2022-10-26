@@ -10,6 +10,7 @@ from parse_config import ConfigParser
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import WandbLogger
 import os
+import wandb
 
 ## https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
 
@@ -19,23 +20,27 @@ SEED = 42
 os.environ["TOKENIZERS_PARALLELISM"] = "false"  # 토크나이저 경고떠서 추가한 부분
 pl.seed_everything(SEED, workers=True)
 torch.manual_seed(SEED)
-torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.deterministic = True  # ???이거 왜있어야댐
 torch.backends.cudnn.benchmark = False
 
 
 def main(config):
+    # 프로젝트 이름을 정하는 변수.
     exp_name = "_".join(
         [
             config["name"],
             config["info"],
             config["optimizer"]["type"],
             config["lr_scheduler"]["type"],
-            str(config["optimizer"]["args"]["lr"]),
+            str(config["arch"]["args"]["lr"]),
             str(config["data_loader"]["args"]["batch_size"]),
         ]
     )
+    # Trainer에 들어갈 logger.
     wandb_logger = WandbLogger(
-        save_dir=config["logger_dir"], name=exp_name, project=config["wandb_project"]
+        save_dir=config["logger_dir"],
+        name=exp_name,
+        project=config["wandb_project"],
     )
     # setup data_loader instances
     data_loader = config.init_obj(
@@ -57,11 +62,12 @@ def main(config):
     model = model(
         loss_func=loss_func,
         metric=metric,
-        optimizer=optimizer,
-        lr_scheduler=lr_scheduler,
+        _optimizer=optimizer,
+        _lr_scheduler=lr_scheduler,
+        optimizer_info=config["optimizer"],
+        lr_scheduler_info=config["lr_scheduler"],
     )
 
-    # gpu가 없으면 'gpus=0'을, gpu가 여러개면 'gpus=4'처럼 사용하실 gpu의 개수를 입력해주세요
     trainer = config.init_ftn("trainer", module_trainer)
     trainer = trainer(wandb_logger=wandb_logger)
     trainer.fit(model=model, datamodule=data_loader)

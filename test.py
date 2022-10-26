@@ -1,81 +1,80 @@
 import argparse
+import collections
 import torch
-from tqdm import tqdm
 import data_loader.data_loaders as module_data
-import model.loss as module_loss
-import model.metric as module_metric
-import model.model as module_arch
 from parse_config import ConfigParser
+import pytorch_lightning as pl
+import os
+import pandas as pd
+
+## https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
+
+# fix random seeds for reproducibility
+SEED = 42
+
+os.environ["TOKENIZERS_PARALLELISM"] = "false"  # 토크나이저 경고떠서 추가한 부분
+pl.seed_everything(SEED, workers=True)
+torch.manual_seed(SEED)
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
 
 
 def main(config):
-    logger = config.get_logger('test')
-
     # setup data_loader instances
-    data_loader = getattr(module_data, config['data_loader']['type'])(
-        config['data_loader']['args']['data_dir'],
-        batch_size=512,
-        shuffle=False,
-        validation_split=0.0,
-        training=False,
-        num_workers=2
-    )
-
-    # build model architecture
-    model = config.init_obj('arch', module_arch)
-    logger.info(model)
+    data_loader = config.init_obj(
+        "data_loader", module_data
+    )  # contains train/dev/test dataloaders
 
     # get function handles of loss and metrics
-    loss_fn = getattr(module_loss, config['loss'])
-    metric_fns = [getattr(module_metric, met) for met in config['metrics']]
+    trainer = pl.Trainer(
+        accelerator="gpu", devices=1, max_epochs=1, log_every_n_steps=1
+    )
 
-    logger.info('Loading checkpoint: {} ...'.format(config.resume))
-    checkpoint = torch.load(config.resume)
-    state_dict = checkpoint['state_dict']
-    if config['n_gpu'] > 1:
-        model = torch.nn.DataParallel(model)
-    model.load_state_dict(state_dict)
+    # Inference part
+    # 저장된 모델로 예측을 진행합니다.
+    model = torch.load(config["model_save_path"])
+    predictions = trainer.predict(model=model, datamodule=data_loader)
 
-    # prepare model for testing
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = model.to(device)
-    model.eval()
+    # 예측된 결과를 형식에 맞게 반올림하여 준비합니다.
+    predictions = list(round(float(i), 1) for i in torch.cat(predictions))
 
-    total_loss = 0.0
-    total_metrics = torch.zeros(len(metric_fns))
-
-    with torch.no_grad():
-        for i, (data, target) in enumerate(tqdm(data_loader)):
-            data, target = data.to(device), target.to(device)
-            output = model(data)
-
-            #
-            # save sample images, or do something with output here
-            #
-
-            # computing loss, metrics on test set
-            loss = loss_fn(output, target)
-            batch_size = data.shape[0]
-            total_loss += loss.item() * batch_size
-            for i, metric in enumerate(metric_fns):
-                total_metrics[i] += metric(output, target) * batch_size
-
-    n_samples = len(data_loader.sampler)
-    log = {'loss': total_loss / n_samples}
-    log.update({
-        met.__name__: total_metrics[i].item() / n_samples for i, met in enumerate(metric_fns)
-    })
-    logger.info(log)
+    # output 형식을 불러와서 예측된 결과로 바꿔주고, output.csv로 출력합니다.
+    output = pd.read_csv("/opt/ml/data/sample_submission.csv")
+    output["target"] = predictions
+    output.to_csv("/opt/ml/data/output.csv", index=False)
 
 
-if __name__ == '__main__':
-    args = argparse.ArgumentParser(description='PyTorch Template')
-    args.add_argument('-c', '--config', default=None, type=str,
-                      help='config file path (default: None)')
-    args.add_argument('-r', '--resume', default=None, type=str,
-                      help='path to latest checkpoint (default: None)')
-    args.add_argument('-d', '--device', default=None, type=str,
-                      help='indices of GPUs to enable (default: all)')
+if __name__ == "__main__":
+    args = argparse.ArgumentParser(description="PyTorch Template")
+    args.add_argument(
+        "-c",
+        "--config",
+        default=None,
+        type=str,
+        help="config file path (default: None)",
+    )
+    args.add_argument(
+        "-r",
+        "--resume",
+        default=None,
+        type=str,
+        help="path to latest checkpoint (default: None)",
+    )
+    args.add_argument(
+        "-d",
+        "--device",
+        default=None,
+        type=str,
+        help="indices of GPUs to enable (default: all)",
+    )
 
-    config = ConfigParser.from_args(args)
+    # custom cli options to modify configuration from default values given in json file.
+    CustomArgs = collections.namedtuple("CustomArgs", "flags type target")
+    options = [
+        CustomArgs(["--lr", "--learning_rate"], type=float, target="optimizer;args;lr"),
+        CustomArgs(
+            ["--bs", "--batch_size"], type=int, target="data_loader;args;batch_size"
+        ),
+    ]
+    config = ConfigParser.from_args(args, options)
     main(config)
