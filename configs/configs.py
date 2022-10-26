@@ -35,7 +35,7 @@ parser.add_argument(
 )
 
 ### Data Path ###
-parser.add_argument("--train_path", default="./data/train.csv")
+# parser.add_argument("--train_path", default="./data/train.csv")
 parser.add_argument("--aug_train_path", default="./data/aug_train.csv")
 parser.add_argument("--dev_path", default="./data/dev.csv")
 parser.add_argument("--test_path", default="./data/dev.csv")

@@ -183,15 +183,6 @@ def random_swap_df(df, n, key, cnt) :
 
 
 def text_augmentation(train_path) :
-    """
-    Text augmentation를 진행하는 함수 (RD, RS)
-
-    Args:
-        train_path (str): train data 경로 
-
-    *Create File:
-        aug_train_df (.csv): Text augmentation 결과 나온 데이터프레임
-    """
     train_df = pd.read_csv(train_path, engine='python')
     
     # data-binning (데이터 구간화)
@@ -203,12 +194,43 @@ def text_augmentation(train_path) :
     new_train_df = train_df.copy()
     new_train_df['label-binning'] = df_label_bins
     
-    # text augmentation
-    aug_del_df = random_deletion_df(df=new_train_df, p=0.25, key='2.0~2.9', cnt=100)
-    aug_swap_df = random_swap_df(df=new_train_df, n=1, key='2.0~2.9', cnt=100) 
+    # 0.1~0.9
+    aug_del_df = random_deletion_df(df=new_train_df, p=0.2, key='0.1~0.9', cnt=100)
+    aug_swap_df = random_swap_df(df=new_train_df, n=1, key='0.1~0.9', cnt=100)
     
-    # 원본 train_df와 aug_df 합치기
     aug_list = [new_train_df, aug_del_df, aug_swap_df]
+    aug_train_df = pd.concat(aug_list)
+    
+    # 1.0~1.9
+    aug_del_df = random_deletion_df(df=new_train_df, p=0.2, key='1.0~1.9', cnt=200)
+    aug_swap_df = random_swap_df(df=new_train_df, n=1, key='1.0~1.9', cnt=200) 
+    
+    tmp_df = aug_train_df.copy()
+    aug_list = [tmp_df, aug_del_df, aug_swap_df]
+    aug_train_df = pd.concat(aug_list)
+    
+    # 2.0~2.9
+    aug_del_df = random_deletion_df(df=new_train_df, p=0.2, key='2.0~2.9', cnt=300)
+    aug_swap_df = random_swap_df(df=new_train_df, n=1, key='2.0~2.9', cnt=300) 
+    
+    tmp_df = aug_train_df.copy()
+    aug_list = [tmp_df, aug_del_df, aug_swap_df]
+    aug_train_df = pd.concat(aug_list)
+    
+    # 4.0~4.9
+    aug_del_df = random_deletion_df(df=new_train_df, p=0.2, key='4.0~4.9', cnt=200)
+    aug_swap_df = random_swap_df(df=new_train_df, n=1, key='4.0~4.9', cnt=200) 
+    
+    tmp_df = aug_train_df.copy()
+    aug_list = [tmp_df, aug_del_df, aug_swap_df]
+    aug_train_df = pd.concat(aug_list)
+    
+    # 5.0
+    aug_del_df = random_deletion_df(df=new_train_df, p=0.2, key='5.0', cnt=30)
+    aug_swap_df = random_swap_df(df=new_train_df, n=1, key='5.0', cnt=30) 
+    
+    tmp_df = aug_train_df.copy()
+    aug_list = [tmp_df, aug_del_df, aug_swap_df]
     aug_train_df = pd.concat(aug_list)
     
     aug_train_df.to_csv('./data/aug_train.csv')
