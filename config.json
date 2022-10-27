@@ -5,7 +5,8 @@
     "model": {
         "type": "Roberta",
         "args": {
-            "architecture": "AutoModelForSequenceClassification"
+            "architecture": "AutoModelForSequenceClassification",
+            "num_labels": 1
         }
     },
     "tokenizer": {

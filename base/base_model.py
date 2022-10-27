@@ -39,7 +39,7 @@ class BaseModel(pl.LightningModule):
         ]:
             raise ValueError("The given architecture is None or not available at huggingface.")
 
-        self.model = getattr(transformers, arch).from_pretrained(
+        self.lm = getattr(transformers, arch).from_pretrained(
             pretrained_model_name_or_path=self.checkpoint,
             **kwargs
         )
