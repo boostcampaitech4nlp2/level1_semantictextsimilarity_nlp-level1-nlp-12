@@ -28,8 +28,7 @@ class STS_Dataloader(pl.LightningDataModule):
     def __init__(self, tokenizer, batch_size, shuffle, num_workers, train_path, dev_path, test_path, predict_path):
         super().__init__()
 
-        #self.checkpoint = checkpoint
-        self.tokenizer = tokenizer #AutoTokenizer.from_pretrained(checkpoint)
+        self.tokenizer = tokenizer 
         self.batch_size = batch_size 
         self.shuffle = shuffle
         self.num_workers = num_workers

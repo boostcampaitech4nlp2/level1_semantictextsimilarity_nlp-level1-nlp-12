@@ -56,7 +56,6 @@ def main(config):
     checkpoint_callback = ModelCheckpoint(dirpath="./saved/model/", monitor="val_loss")
     wandb.init(name=config['wandb']['name'], project=config['wandb']['project'])
     wandb_args = {
-        'checkpoint': config['checkpoint'],
         'batch_size': config['data_loader']['args']['batch_size'],
         'max_epochs': config['trainer']['args']['max_epochs'],
         'optimizer': config['optimizer']['type'],

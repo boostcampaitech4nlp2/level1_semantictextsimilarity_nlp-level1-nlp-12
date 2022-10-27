@@ -1,15 +1,58 @@
 import torch.nn as nn
-import numpy as np
 from abc import abstractmethod
 import pytorch_lightning as pl
+import transformers
 
 
 class BaseModel(pl.LightningModule):
     """
     Base class for all models
     """
-    def __init__(self):
+    def __init__(
+        self,
+        checkpoint,
+        criterion,
+        metrics,
+        optimizer,
+        lr_scheduler,
+        **kwargs
+    ):
         super().__init__()
+        self.save_hyperparameters()
+
+        # pretrained model name or checkpoint path
+        self.checkpoint = checkpoint 
+
+        # get pretrained model from huggingface hub
+        arch = kwargs.pop('architecture', None)
+        if arch is None or arch not in [
+            'AutoModel', 
+            'AutoModelForPreTraining',
+            'AutoModelForCausalLM',
+            'AutoModelForMaskedLM',
+            'AutoModelForSeq2SeqLM',
+            'AutoModelForSequenceClassification',
+            'AutoModelForMultipleChoice',
+            'AutoModelForNextSentencePrediction',
+            'AutoModelForTokenClassification',
+            'AutoModelForQuestionAnswering'
+        ]:
+            raise ValueError("The given architecture is None or not available at huggingface.")
+
+        self.model = getattr(transformers, arch).from_pretrained(
+            pretrained_model_name_or_path=self.checkpoint,
+            **kwargs
+        )
+
+        # criterion for calculating loss
+        self.criterion = criterion
+
+        # metrics
+        self.metric_fns = metrics
+
+        # optimizer functions 
+        self.optimizer = optimizer
+        self.lr_scheduler = lr_scheduler
 
     @abstractmethod
     def forward(self, *inputs):
@@ -19,6 +62,47 @@ class BaseModel(pl.LightningModule):
         :return: Model output
         """
         raise NotImplementedError
+
+    def training_step(self, batch, batch_idx):
+        x, y = batch
+        logits = self.forward(x)
+        loss = self.criterion(logits, y.float())
+        self.log("train_loss", loss)
+
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        x, y = batch
+        logits = self.forward(x)
+        loss = self.criterion(logits, y.float())
+        self.log("val_loss", loss)
+        for metric_fn in self.metric_fns:
+            self.log("val" + metric_fn.__name__, metric_fn(logits.squeeze(), y.squeeze()))
+
+        return loss
+
+    def test_step(self, batch, batch_idx):
+        x, y = batch
+        logits = self.forward(x)
+        for metric_fn in self.metric_fns:
+            self.log("test" + metric_fn.__name__, metric_fn(logits.squeeze(), y.squeeze()))
+
+    def predict_step(self, batch, batch_idx):
+        x = batch
+        logits = self.forward(x)
+
+        return logits.squeeze()
+
+    def configure_optimizers(self):
+        optimizer = self.optimizer(params=self.parameters())
+        if self.lr_scheduler:
+            lr_scheduler = self.lr_scheduler(optimizer=optimizer)
+            return {
+                "optimizer": optimizer,
+                "lr_scheduler": lr_scheduler
+            }
+        else:
+            return optimizer
 
     def __str__(self):
         """
