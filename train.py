@@ -28,8 +28,8 @@ def main(config):
     checkpoint = config['checkpoint']
 
     # get tokenizer
-    tokenizer = config.init_ftn('tokenizer', module_tokenizer, checkpoint)
-
+    tokenizer = config.init_obj('tokenizer', module_tokenizer, checkpoint=checkpoint)
+    
     # setup train/dev/test data_loader instances
     dataloader = config.init_obj('data_loader', module_data, tokenizer=tokenizer) 
 
@@ -52,13 +52,13 @@ def main(config):
     )
 
     # custom wandb logger & checkpoint_callback
+    # more info: https://docs.wandb.ai/guides/integrations/lightning
     checkpoint_callback = ModelCheckpoint(dirpath="./saved/model/", monitor="val_loss")
-    wandb.init(config['wandb'])
+    wandb.init(name=config['wandb']['name'], project=config['wandb']['project'])
     wandb_args = {
         'checkpoint': config['checkpoint'],
         'batch_size': config['data_loader']['args']['batch_size'],
         'max_epochs': config['trainer']['args']['max_epochs'],
-        'loss': config['loss'],
         'optimizer': config['optimizer']['type'],
         'lr': config['optimizer']['args']['lr'],
         'weight_decay': config['optimizer']['args']['weight_decay']
@@ -66,8 +66,13 @@ def main(config):
     wandb.config.update(wandb_args)
     wandb_logger = WandbLogger()
 
-    # build pl.trainer
-    trainer = config.init_obj('trainer', module_trainer, logger=wandb_logger, callbacks=[checkpoint_callback])
+    # build pl.trainer 
+    trainer = config.init_obj(
+        'trainer',
+        module_trainer,
+        logger=wandb_logger,
+        callbacks=[checkpoint_callback]
+    )
     trainer.fit(model=model, datamodule=dataloader)
     #trainer.test(model=model, datamodule=dataloader)    
     

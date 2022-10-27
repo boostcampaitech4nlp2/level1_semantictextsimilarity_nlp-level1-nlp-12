@@ -10,9 +10,7 @@
     },
     "tokenizer": {
         "type": "PretrainedTokenizer",
-        "args": {
-            "max_len":160
-        }
+        "args": {}
     },
     "data_loader": {
         "type": "STS_Dataloader",

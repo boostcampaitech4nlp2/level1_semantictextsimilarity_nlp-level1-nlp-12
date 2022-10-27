@@ -2,6 +2,7 @@
 import torch
 import pytorch_lightning as pl
 import pandas as pd
+from transformers import AutoTokenizer
 from tqdm.auto import tqdm
 
 
@@ -27,7 +28,8 @@ class STS_Dataloader(pl.LightningDataModule):
     def __init__(self, tokenizer, batch_size, shuffle, num_workers, train_path, dev_path, test_path, predict_path):
         super().__init__()
 
-        self.tokenizer = tokenizer
+        #self.checkpoint = checkpoint
+        self.tokenizer = tokenizer #AutoTokenizer.from_pretrained(checkpoint)
         self.batch_size = batch_size 
         self.shuffle = shuffle
         self.num_workers = num_workers
