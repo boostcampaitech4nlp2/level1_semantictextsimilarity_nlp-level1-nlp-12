@@ -77,7 +77,7 @@ class BaseModel(pl.LightningModule):
         loss = self.criterion(logits, y.float())
         self.log("val_loss", loss)
         for metric_fn in self.metric_fns:
-            self.log("val" + metric_fn.__name__, metric_fn(logits.squeeze(), y.squeeze()))
+            self.log("val_" + metric_fn.__name__, metric_fn(logits.squeeze(), y.squeeze()))
 
         return loss
 
@@ -85,7 +85,7 @@ class BaseModel(pl.LightningModule):
         x, y = batch
         logits = self.forward(x)
         for metric_fn in self.metric_fns:
-            self.log("test" + metric_fn.__name__, metric_fn(logits.squeeze(), y.squeeze()))
+            self.log("test_" + metric_fn.__name__, metric_fn(logits.squeeze(), y.squeeze()))
 
     def predict_step(self, batch, batch_idx):
         x = batch
@@ -94,9 +94,11 @@ class BaseModel(pl.LightningModule):
         return logits.squeeze()
 
     def configure_optimizers(self):
-        self.optimizer = self.optimizer(params=self.parameters())
+        self.optimizer = self.optimizer(self.parameters())
+        self.hparams['optimizer'] = self.optimizer
         if self.lr_scheduler:
             self.lr_scheduler = self.lr_scheduler(optimizer=self.optimizer)
+            self.hparams['lr_scheduler'] = self.lr_scheduler
             return {
                 "optimizer": self.optimizer,
                 "lr_scheduler": self.lr_scheduler

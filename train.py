@@ -3,24 +3,22 @@ import collections
 import torch
 import wandb
 import os
+import pandas as pd
 import data_loader.data_loaders as module_data
 import model.loss as module_loss
 import model.metric as module_metric
 import model.model as module_model
 import trainer.trainer as module_trainer
 from parse_config import ConfigParser
-import pytorch_lightning as pl
+from pytorch_lightning import seed_everything
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
-#from utils import prepare_device
+
 ## https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
 
 # fix random seeds for reproducibility
 SEED = 42
-pl.seed_everything(SEED, workers=True)
-"""torch.manual_seed(SEED)
-torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False"""
+seed_everything(SEED, workers=True) # sets seed for pytorch, numpy and python.random
 
 # to avoid parallelism error messages
 os.environ['TOKENIZERS_PARALLELISM'] = "True" 
@@ -58,9 +56,7 @@ def main(config):
     wandb_args = {
         'batch_size': config['data_loader']['args']['batch_size'],
         'max_epochs': config['trainer']['args']['max_epochs'],
-        'optimizer': config['optimizer']['type'],
-        'lr': config['optimizer']['args']['lr'],
-        'weight_decay': config['optimizer']['args']['weight_decay']
+        'lr': config['optimizer']['args']['lr']
     }
     wandb.config.update(wandb_args)
     wandb_logger = WandbLogger()
@@ -74,10 +70,24 @@ def main(config):
         deterministic=True
     )
     trainer.fit(model=model, datamodule=dataloader)
+    trainer.validate(model=model, datamodule=dataloader)
     #trainer.test(model=model, datamodule=dataloader)    
     
+    """# save trained model
+
+    # Inference
+    predictions = trainer.predict(model=model, datamodule=dataloader)
+
+    # 예측된 결과를 형식에 맞게 반올림하여 준비합니다.
+    predictions = list(round(float(i), 1) for i in torch.cat(predictions))
+
+    # output 형식을 불러와서 예측된 결과로 바꿔주고, output.csv로 출력합니다.
+    output = pd.read_csv('./data/sample_submission.csv')
+    output['target'] = predictions
+    output.to_csv('./data/output.csv', index=False)"""
 
 if __name__ == '__main__':
+
     parser = argparse.ArgumentParser(description='PyTorch-Lightning Template')
     parser.add_argument('-c', '--config', default='./config.json', type=str,
                       help='config file path (default: "./config.json")')
