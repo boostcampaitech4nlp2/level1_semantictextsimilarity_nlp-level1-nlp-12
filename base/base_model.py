@@ -95,10 +95,8 @@ class BaseModel(pl.LightningModule):
 
     def configure_optimizers(self):
         self.optimizer = self.optimizer(self.parameters())
-        self.hparams['optimizer'] = self.optimizer
         if self.lr_scheduler:
             self.lr_scheduler = self.lr_scheduler(optimizer=self.optimizer)
-            self.hparams['lr_scheduler'] = self.lr_scheduler
             return {
                 "optimizer": self.optimizer,
                 "lr_scheduler": self.lr_scheduler

@@ -31,7 +31,7 @@
     "optimizer": {
         "type": "AdamW",
         "args":{
-            "lr": 0.03,
+            "lr": 3e-4,
             "weight_decay": 0.01,
             "amsgrad": false
         }
@@ -58,8 +58,7 @@
         }
     },
     "wandb": {
-        "name": "wjlee",
-        "project":"sts",
-        "save_dir":"saved/"
+        "default_name":"wjl",
+        "project":"sts"
     }
 }

@@ -12,7 +12,7 @@ import trainer.trainer as module_trainer
 from parse_config import ConfigParser
 from pytorch_lightning import seed_everything
 from pytorch_lightning.loggers import WandbLogger
-from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks import EarlyStopping
 
 ## https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
 
@@ -51,8 +51,19 @@ def main(config):
 
     # custom wandb logger & checkpoint_callback
     # more info: https://docs.wandb.ai/guides/integrations/lightning
-    checkpoint_callback = ModelCheckpoint(dirpath="./saved/model/", monitor="val_loss")
-    wandb.init(name=config['wandb']['name'], project=config['wandb']['project'])
+    checkpoint_callback = EarlyStopping(monitor="val_loss")
+    name_ls = [
+        config['wandb']['default_name'],
+        config['optimizer']['type'],
+        config['lr_scheduler']['type'],
+        str(config['optimizer']['args']['lr']),
+        str(config['data_loader']['args']['batch_size'])
+    ]
+    wand_name = '_'.join(name_ls)
+    wandb.init(
+        name=wand_name,
+        project=config['wandb']['project']
+    )
     wandb_args = {
         'batch_size': config['data_loader']['args']['batch_size'],
         'max_epochs': config['trainer']['args']['max_epochs'],
@@ -87,8 +98,7 @@ def main(config):
     output.to_csv('./data/output.csv', index=False)"""
 
 if __name__ == '__main__':
-
-    parser = argparse.ArgumentParser(description='PyTorch-Lightning Template')
+    parser = argparse.ArgumentParser(description='STS')
     parser.add_argument('-c', '--config', default='./config.json', type=str,
                       help='config file path (default: "./config.json")')
     parser.add_argument('-r', '--resume', default=None, type=str,
