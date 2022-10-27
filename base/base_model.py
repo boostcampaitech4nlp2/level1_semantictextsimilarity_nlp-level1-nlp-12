@@ -94,15 +94,15 @@ class BaseModel(pl.LightningModule):
         return logits.squeeze()
 
     def configure_optimizers(self):
-        optimizer = self.optimizer(params=self.parameters())
+        self.optimizer = self.optimizer(params=self.parameters())
         if self.lr_scheduler:
-            lr_scheduler = self.lr_scheduler(optimizer=optimizer)
+            self.lr_scheduler = self.lr_scheduler(optimizer=self.optimizer)
             return {
-                "optimizer": optimizer,
-                "lr_scheduler": lr_scheduler
+                "optimizer": self.optimizer,
+                "lr_scheduler": self.lr_scheduler
             }
         else:
-            return optimizer
+            return self.optimizer
 
     def __str__(self):
         """

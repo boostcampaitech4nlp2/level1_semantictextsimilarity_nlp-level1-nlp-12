@@ -1,12 +1,13 @@
-#from base import BaseDataLoader
-import torch
+from base import BaseDataLoader
 import pytorch_lightning as pl
 import pandas as pd
-from transformers import AutoTokenizer
+import torch
+from torch.utils.data import Dataset
 from tqdm.auto import tqdm
+from transformers import AutoTokenizer
 
 
-class Dataset(torch.utils.data.Dataset):
+class CustomDataset(Dataset):
     def __init__(self, inputs, targets=[]):
         self.inputs = inputs
         self.targets = targets
@@ -24,25 +25,31 @@ class Dataset(torch.utils.data.Dataset):
         return len(self.inputs)
 
 
-class STS_Dataloader(pl.LightningDataModule):
-    def __init__(self, tokenizer, batch_size, shuffle, num_workers, train_path, dev_path, test_path, predict_path):
-        super().__init__()
-
-        self.tokenizer = tokenizer 
-        self.batch_size = batch_size 
-        self.shuffle = shuffle
-        self.num_workers = num_workers
-
-        self.train_path = train_path
-        self.dev_path = dev_path
-        self.test_path = test_path
-        self.predict_path = predict_path
-
-        self.train_dataset = None
-        self.val_dataset = None
-        self.test_dataset = None
-        self.predict_dataset = None
-        
+class STS_Dataloader(BaseDataLoader):
+    def __init__(
+        self,
+        checkpoint,
+        batch_size,
+        shuffle,
+        num_workers,
+        train_path,
+        val_path,
+        test_path,
+        predict_path,
+        **kwargs
+    ):
+        super().__init__(
+            batch_size=batch_size,
+            shuffle=shuffle,
+            num_workers=num_workers,
+            train_path=train_path,
+            val_path=val_path,
+            test_path=test_path,
+            predict_path=predict_path,
+            **kwargs
+        )
+        self.checkpoint = checkpoint
+        #self.tokenizer = AutoTokenizer.from_pretrained(self.checkpoint)
         self.target_columns = ['label']
         self.delete_columns = ['id']
         self.text_columns = ['sentence_1', 'sentence_2']
@@ -70,42 +77,29 @@ class STS_Dataloader(pl.LightningDataModule):
 
         return inputs, targets
 
-    #def prepare_data(self):
-    # if there is data to download
+    def prepare_data(self):
+        self.tokenizer = AutoTokenizer.from_pretrained(self.checkpoint)
 
     def setup(self, stage='fit'):
         if stage == 'fit':
-            # 학습 데이터와 검증 데이터셋을 호출합니다
-            train_data = pd.read_csv(self.train_path)
-            val_data = pd.read_csv(self.dev_path)
+            # read and assign csv files
+            train_data = super().get_data('train')
+            val_data = super().get_data('dev')
 
-            # 학습데이터 준비
+            # preprocess train/val data
             train_inputs, train_targets = self.preprocessing(train_data)
-
-            # 검증데이터 준비
             val_inputs, val_targets = self.preprocessing(val_data)
 
-            # train 데이터만 shuffle을 적용해줍니다, 필요하다면 val, test 데이터에도 shuffle을 적용할 수 있습니다
-            self.train_dataset = Dataset(train_inputs, train_targets)
-            self.val_dataset = Dataset(val_inputs, val_targets)
+            super().load_dataset('train', CustomDataset(train_inputs, train_targets))
+            super().load_dataset('val', CustomDataset(val_inputs, val_targets))
+
         else:
             # 평가데이터 준비
-            test_data = pd.read_csv(self.test_path)
+            test_data = super().get_data('test')
+            predict_data = super().get_data('predict')
+
             test_inputs, test_targets = self.preprocessing(test_data)
-            self.test_dataset = Dataset(test_inputs, test_targets)
-
-            predict_data = pd.read_csv(self.predict_path)
             predict_inputs, predict_targets = self.preprocessing(predict_data)
-            self.predict_dataset = Dataset(predict_inputs, [])
 
-    def train_dataloader(self):
-        return torch.utils.data.DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=self.shuffle, num_workers=self.num_workers)
-
-    def val_dataloader(self):
-        return torch.utils.data.DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers)
-
-    def test_dataloader(self):
-        return torch.utils.data.DataLoader(self.test_dataset, batch_size=self.batch_size)
-
-    def predict_dataloader(self):
-        return torch.utils.data.DataLoader(self.predict_dataset, batch_size=self.batch_size)
+            super().load_dataset('test', CustomDataset(test_inputs, test_targets))
+            super().load_dataset('predict', CustomDataset(predict_inputs, predict_targets))

@@ -11,13 +11,16 @@
     },
     "tokenizer": {
         "type": "PretrainedTokenizer",
-        "args": {}
+        "args": {
+            "use_fast": true,
+            "max_length": 160
+        }
     },
     "data_loader": {
         "type": "STS_Dataloader",
         "args":{
             "train_path": "data/train.csv",
-            "dev_path": "data/dev.csv",
+            "val_path": "data/dev.csv",
             "test_path": "data/dev.csv",
             "predict_path": "data/test.csv",
             "batch_size": 16,
@@ -47,7 +50,6 @@
     "trainer": {
         "type": "PL_Trainer",
         "args": {
-            "gpus":1,
             "accelerator":"gpu",
             "devices":1,
             "max_epochs":3,

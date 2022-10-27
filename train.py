@@ -2,11 +2,11 @@ import argparse
 import collections
 import torch
 import wandb
+import os
 import data_loader.data_loaders as module_data
 import model.loss as module_loss
 import model.metric as module_metric
 import model.model as module_model
-import model.tokenizer as module_tokenizer
 import trainer.trainer as module_trainer
 from parse_config import ConfigParser
 import pytorch_lightning as pl
@@ -18,20 +18,20 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 # fix random seeds for reproducibility
 SEED = 42
 pl.seed_everything(SEED, workers=True)
-torch.manual_seed(SEED)
+"""torch.manual_seed(SEED)
 torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False
+torch.backends.cudnn.benchmark = False"""
+
+# to avoid parallelism error messages
+os.environ['TOKENIZERS_PARALLELISM'] = "True" 
 
 def main(config):
 
     # huggingface pretrained model name or checkpoint dir
     checkpoint = config['checkpoint']
-
-    # get tokenizer
-    tokenizer = config.init_obj('tokenizer', module_tokenizer, checkpoint=checkpoint)
     
     # setup train/dev/test data_loader instances
-    dataloader = config.init_obj('data_loader', module_data, tokenizer=tokenizer) 
+    dataloader = config.init_obj('data_loader', module_data, checkpoint=checkpoint) 
 
     # get function handles of loss and metrics
     criterion = getattr(module_loss, config['loss'])
@@ -70,7 +70,8 @@ def main(config):
         'trainer',
         module_trainer,
         logger=wandb_logger,
-        callbacks=[checkpoint_callback]
+        callbacks=[checkpoint_callback],
+        deterministic=True
     )
     trainer.fit(model=model, datamodule=dataloader)
     #trainer.test(model=model, datamodule=dataloader)    
@@ -89,7 +90,8 @@ if __name__ == '__main__':
     CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')
     options = [
         CustomArgs(['--lr', '--learning_rate'], type=float, target='optimizer;args;lr'),
-        CustomArgs(['--bs', '--batch_size'], type=int, target='data_loader;args;batch_size')
+        CustomArgs(['--bs', '--batch_size'], type=int, target='data_loader;args;batch_size'),
+        CustomArgs(['--me', '--max_epochs'], type=int, target='trainer;args;max_epochs')
     ]
     config = ConfigParser.from_args(parser, options)
     main(config)
