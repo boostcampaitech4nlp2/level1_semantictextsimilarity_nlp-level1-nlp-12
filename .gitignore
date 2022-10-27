@@ -1,0 +1,11 @@
+.cache/
+.ipython/
+.jupyter/
+.git/
+.local/
+.vscode-server/
+code/
+data/
+.profile
+.wget-hsts
+.gitconfig
