@@ -23,7 +23,7 @@
             "val_path": "data/dev.csv",
             "test_path": "data/dev.csv",
             "predict_path": "data/test.csv",
-            "batch_size": 16,
+            "batch_size": 32,
             "num_workers": 8,
             "shuffle": true
         }

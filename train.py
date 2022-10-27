@@ -84,7 +84,7 @@ def main(config):
     trainer.validate(model=model, datamodule=dataloader)
     #trainer.test(model=model, datamodule=dataloader)    
     
-    """# save trained model
+    # save trained model
 
     # Inference
     predictions = trainer.predict(model=model, datamodule=dataloader)
@@ -95,7 +95,7 @@ def main(config):
     # output 형식을 불러와서 예측된 결과로 바꿔주고, output.csv로 출력합니다.
     output = pd.read_csv('./data/sample_submission.csv')
     output['target'] = predictions
-    output.to_csv('./data/output.csv', index=False)"""
+    output.to_csv('./data/output.csv', index=False)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='STS')

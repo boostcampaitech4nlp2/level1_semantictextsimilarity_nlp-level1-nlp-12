@@ -105,6 +105,7 @@ data/
 input/
 saved/
 datasets/
+*.ckpt
 
 # editor, os cache directory
 .vscode/
