@@ -1,93 +1,58 @@
 import argparse
-import collections
-import torch
-import wandb
 import os
-import pandas as pd
+import collections
+import wandb
+import torch
+import numpy as np
 import data_loader.data_loaders as module_data
-import model.loss as module_loss
-import model.metric as module_metric
 import model.model as module_model
-import trainer.trainer as module_trainer
 from parse_config import ConfigParser
-from pytorch_lightning import seed_everything
+from pytorch_lightning import seed_everything, Trainer
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import EarlyStopping
 
-## https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
 
 # fix random seeds for reproducibility
 SEED = 42
 seed_everything(SEED, workers=True) # sets seed for pytorch, numpy and python.random
 
-# to avoid parallelism error messages
-os.environ['TOKENIZERS_PARALLELISM'] = "True" 
+def main(config_parser):
+    os.environ['TOKENIZERS_PARALLELISM'] = "True"
 
-def main(config):
+    logger = config_parser.get_logger('train')
+    configs = config_parser.config
 
-    # huggingface pretrained model name or checkpoint dir
-    checkpoint = config['checkpoint']
-    
-    # setup train/dev/test data_loader instances
-    dataloader = config.init_obj('data_loader', module_data, checkpoint=checkpoint) 
-
-    # get function handles of loss and metrics
-    criterion = getattr(module_loss, config['loss'])
-    metrics = [getattr(module_metric, metric) for metric in config['metrics']]
-
-    # build optimizer, learning rate scheduler. delete every lines containing lr_scheduler for disabling scheduler
-    optimizer = config.init_ftn('optimizer', torch.optim) # partial object. Will get an model instance in model.py
-    lr_scheduler = config.init_ftn('lr_scheduler', torch.optim.lr_scheduler)
-
-    # build model architecture, then print to console
-    model = config.init_obj(
-        'model', module_model, 
-        checkpoint=checkpoint, 
-        criterion=criterion, 
-        metrics=metrics, 
-        optimizer=optimizer, 
-        lr_scheduler=lr_scheduler
-    )
+    # setup data_loader and model
+    dataloader_module = getattr(module_data, config_parser['data_loader'])(**configs)
+    model_module = getattr(module_model, config_parser['model'])(**configs)
 
     # custom wandb logger & checkpoint_callback
     # more info: https://docs.wandb.ai/guides/integrations/lightning
-    checkpoint_callback = EarlyStopping(monitor="val_loss")
-    name_ls = [
-        config['wandb']['default_name'],
-        config['optimizer']['type'],
-        config['lr_scheduler']['type'],
-        str(config['optimizer']['args']['lr']),
-        str(config['data_loader']['args']['batch_size'])
-    ]
-    wand_name = '_'.join(name_ls)
-    wandb.init(
-        name=wand_name,
-        project=config['wandb']['project']
-    )
-    wandb_args = {
-        'batch_size': config['data_loader']['args']['batch_size'],
-        'max_epochs': config['trainer']['args']['max_epochs'],
-        'lr': config['optimizer']['args']['lr']
-    }
-    wandb.config.update(wandb_args)
-    wandb_logger = WandbLogger()
+    earlystop_callback = EarlyStopping(monitor="val_loss")
 
-    # build pl.trainer 
-    trainer = config.init_obj(
-        'trainer',
-        module_trainer,
+    wandb.init()
+    wandb_name = f"{configs['optimizer']}-{configs['batch_size']}-{configs['lr']}"
+    wandb_project = "sts"
+    wandb_logger = WandbLogger(wandb_name, wandb_project)
+
+    # build trainer, then print to console
+    # https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
+    trainer = Trainer(
+        accelerator=configs.pop('accelerator', 'auto'),
+        max_epochs=configs.pop('max_epochs', 10),
+        log_every_n_steps=configs.pop('log_every_n_steps', 10),
+        deterministic=True, 
         logger=wandb_logger,
-        callbacks=[checkpoint_callback],
-        deterministic=True
+        callbacks=[earlystop_callback]
     )
-    trainer.fit(model=model, datamodule=dataloader)
-    trainer.validate(model=model, datamodule=dataloader)
-    #trainer.test(model=model, datamodule=dataloader)    
-    
-    # save trained model
+    logger.info(trainer)
+
+    #if configs.pop('resume', None):
+    trainer.fit(model=model_module, datamodule=dataloader_module)
+    trainer.test(model=model_module, datamodule=dataloader_module)
 
     # Inference
-    predictions = trainer.predict(model=model, datamodule=dataloader)
+    predictions = trainer.predict(model=model_module, datamodule=dataloader_module)
 
     # 예측된 결과를 형식에 맞게 반올림하여 준비합니다.
     predictions = list(round(float(i), 1) for i in torch.cat(predictions))
@@ -97,21 +62,24 @@ def main(config):
     output['target'] = predictions
     output.to_csv('./data/output.csv', index=False)
 
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='STS')
-    parser.add_argument('-c', '--config', default='./config.json', type=str,
-                      help='config file path (default: "./config.json")')
-    parser.add_argument('-r', '--resume', default=None, type=str,
-                      help='path to latest checkpoint (default: None)')
+    parser = argparse.ArgumentParser(description='PyTorch Template')
+    parser.add_argument('-c', '--config', default='config.json', type=str,
+                      help='config file path (default: None)')
+    """parser.add_argument('-r', '--resume', default=None, type=str,
+                      help='path to latest checkpoint (default: None)')"""
     parser.add_argument('-d', '--device', default=None, type=str,
                       help='indices of GPUs to enable (default: all)')
 
     # custom cli options to modify configuration from default values given in json file.
     CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')
     options = [
-        CustomArgs(['--lr', '--learning_rate'], type=float, target='optimizer;args;lr'),
-        CustomArgs(['--bs', '--batch_size'], type=int, target='data_loader;args;batch_size'),
-        CustomArgs(['--me', '--max_epochs'], type=int, target='trainer;args;max_epochs')
+        CustomArgs(['-r', '--resume'], type=float, target='lr'),
+        CustomArgs(['--lr', '--learning_rate'], type=float, target='lr'),
+        CustomArgs(['--bs', '--batch_size'], type=int, target='batch_size'),
+        CustomArgs(['--me', '--max_epochs'], type=int, target='max_epochs')
     ]
-    config = ConfigParser.from_args(parser, options)
-    main(config)
+    config_parser = ConfigParser.from_args(parser, options)
+
+    main(config_parser)

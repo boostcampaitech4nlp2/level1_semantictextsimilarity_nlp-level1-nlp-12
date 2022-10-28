@@ -1,5 +1,0 @@
-[default]
-entity = nlp12
-project = sts
-base_url = https://api.wandb.ai
-

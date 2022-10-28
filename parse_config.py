@@ -1,6 +1,5 @@
 import os
 import logging
-import transformers
 from pathlib import Path
 from functools import reduce, partial
 from operator import getitem
@@ -23,8 +22,8 @@ class ConfigParser:
         self._config = _update_config(config, modification)
         self.resume = resume
 
-        """# set save_dir where trained model and log will be saved.
-        save_dir = Path("./saved") #Path(self.config['trainer']['save_dir'])
+        # set save_dir where trained model and log will be saved.
+        save_dir = Path('log') 
 
         exper_name = self.config['name']
         if run_id is None: # use timestamp as default run-id
@@ -46,19 +45,18 @@ class ConfigParser:
             0: logging.WARNING,
             1: logging.INFO,
             2: logging.DEBUG
-        }"""
+        }
 
     @classmethod
-    def from_args(cls, parser, options=''):
+    def from_args(cls, args, options=''):
         """
         Initialize this class from some cli arguments. Used in train, test.
         """
         for opt in options:
-            parser.add_argument(*opt.flags, default=None, type=opt.type)
-        if not isinstance(parser, tuple):
-            args = parser.parse_args()
-        else:
-            args = parser
+            args.add_argument(*opt.flags, default=None, type=opt.type)
+        if not isinstance(args, tuple):
+            args = args.parse_args()
+
         if args.device is not None:
             os.environ["CUDA_VISIBLE_DEVICES"] = args.device
         if args.resume is not None:
@@ -70,7 +68,7 @@ class ConfigParser:
             resume = None
             cfg_fname = Path(args.config)
         
-        config = read_json(cfg_fname)
+        config = read_json(cfg_fname) # pre-defined config
         if args.config and resume:
             # update new config for fine-tuning
             config.update(read_json(args.config))

@@ -1,26 +1,11 @@
-from base import BaseModel
 import torch.nn as nn
+import torch.nn.functional as F
+from base import BaseModel
 
 
 class Roberta(BaseModel):
-
-    def __init__(
-        self,
-        checkpoint,
-        criterion,
-        metrics,
-        optimizer,
-        lr_scheduler,
-        **kwargs
-    ):
-        super().__init__(
-            checkpoint=checkpoint,
-            criterion = criterion,
-            metrics=metrics,
-            optimizer=optimizer,
-            lr_scheduler=lr_scheduler,
-            **kwargs
-        )
+    def __init__(self, **configs):
+        super().__init__(**configs)
 
     def forward(self, x):
         '''

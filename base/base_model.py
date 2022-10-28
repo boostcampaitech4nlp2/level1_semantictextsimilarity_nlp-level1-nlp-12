@@ -1,31 +1,31 @@
-import torch.nn as nn
 from abc import abstractmethod
-import pytorch_lightning as pl
 import transformers
-
+import torch.nn as nn
+import torch.optim as optim
+import pytorch_lightning as pl
+import model.metric as module_metric
+import model.loss as module_loss
 
 class BaseModel(pl.LightningModule):
     """
     Base class for all models
     """
-    def __init__(
-        self,
-        checkpoint,
-        criterion,
-        metrics,
-        optimizer,
-        lr_scheduler,
-        **kwargs
-    ):
+    def __init__(self, **configs):
         super().__init__()
-        self.save_hyperparameters()
+        self.save_hyperparameters(ignore='metrics')
+        model_args = configs['model_args']
+        self.architecture = model_args.pop('architecture', None)
 
-        # pretrained model name or checkpoint path
-        self.checkpoint = checkpoint 
+        self.checkpoint = configs['checkpoint']
+        self.lr = configs.pop('lr', 1e-5)
+        self.max_epochs = configs.pop('max_epochs')
+        self.optimizer = configs['optimizer']
+        self.criterion = configs['criterion']
+        self.criterion = getattr(module_loss, self.criterion)
+        self.metrics = configs.pop('metrics')
 
         # get pretrained model from huggingface hub
-        arch = kwargs.pop('architecture', None)
-        if arch is None or arch not in [
+        if self.architecture is None or self.architecture not in [
             'AutoModel', 
             'AutoModelForPreTraining',
             'AutoModelForCausalLM',
@@ -39,20 +39,10 @@ class BaseModel(pl.LightningModule):
         ]:
             raise ValueError("The given architecture is None or not available at huggingface.")
 
-        self.lm = getattr(transformers, arch).from_pretrained(
+        self.lm = getattr(transformers, self.architecture).from_pretrained(
             pretrained_model_name_or_path=self.checkpoint,
-            **kwargs
+            **model_args
         )
-
-        # criterion for calculating loss
-        self.criterion = criterion
-
-        # metrics
-        self.metric_fns = metrics
-
-        # optimizer functions 
-        self.optimizer = optimizer
-        self.lr_scheduler = lr_scheduler
 
     @abstractmethod
     def forward(self, *inputs):
@@ -76,16 +66,18 @@ class BaseModel(pl.LightningModule):
         logits = self.forward(x)
         loss = self.criterion(logits, y.float())
         self.log("val_loss", loss)
-        for metric_fn in self.metric_fns:
-            self.log("val_" + metric_fn.__name__, metric_fn(logits.squeeze(), y.squeeze()))
+        for metric in self.metrics:
+            metric_fn = getattr(module_metric, metric)
+            self.log("val_" + metric, metric_fn(logits.squeeze(), y.squeeze()))
 
         return loss
 
     def test_step(self, batch, batch_idx):
         x, y = batch
         logits = self.forward(x)
-        for metric_fn in self.metric_fns:
-            self.log("test_" + metric_fn.__name__, metric_fn(logits.squeeze(), y.squeeze()))
+        for metric in self.metrics:
+            metric_fn = getattr(module_metric, metric)
+            self.log("test_" + metric, metric_fn(logits.squeeze(), y.squeeze()))
 
     def predict_step(self, batch, batch_idx):
         x = batch
@@ -94,15 +86,19 @@ class BaseModel(pl.LightningModule):
         return logits.squeeze()
 
     def configure_optimizers(self):
-        self.optimizer = self.optimizer(self.parameters())
-        if self.lr_scheduler:
+        optimizer = getattr(optim, self.optimizer)(
+            self.parameters(),
+            self.lr
+        )
+
+        """if self.lr_scheduler:
             self.lr_scheduler = self.lr_scheduler(optimizer=self.optimizer)
             return {
                 "optimizer": self.optimizer,
                 "lr_scheduler": self.lr_scheduler
             }
-        else:
-            return self.optimizer
+        else:"""
+        return optimizer
 
     def __str__(self):
         """
