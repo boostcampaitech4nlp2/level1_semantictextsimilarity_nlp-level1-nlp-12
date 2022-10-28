@@ -21,7 +21,7 @@ parser.add_argument(
 parser.add_argument("--loss_func", type=str, default="L1Loss", help="L1Loss | ...")
 
 ### HyperParmeters ###
-parser.add_argument("--batch_size", default=16, type=int)
+parser.add_argument("--batch_size", default=32, type=int)
 parser.add_argument("--max_epoch", default=30, type=int)
 parser.add_argument("--shuffle", default=True)
 
