@@ -1,7 +1,7 @@
 {
-    "name": "STS_baseline",
+    "name": "STS",
     "accelerator": "cuda",
-    "checkpoint": "klue/roberta-base",
+    "checkpoint": "beomi/KcELECTRA-base-v2022",
     "model": "Roberta",
     "model_args":{
         "architecture": "AutoModelForSequenceClassification",
@@ -15,7 +15,7 @@
     "lr_scheduler_args": {
 	    "step_size": 100
     },
-    "max_epochs": 10,
+    "max_epochs": 15,
     "max_length": 160,
     "log_every_n_steps": 30,
     "metrics": [
