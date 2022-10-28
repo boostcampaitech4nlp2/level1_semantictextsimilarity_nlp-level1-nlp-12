@@ -1,4 +1,4 @@
-{i
+{
     "name": "STS_baseline",
     "accelerator": "cuda",
     "checkpoint": "klue/roberta-base",
@@ -12,7 +12,7 @@
     "optimizer": "AdamW",
     "lr": 1e-3,
     "lr_scheduler": "StepLR",
-    "lr_scheduler_args: {
+    "lr_scheduler_args": {
 	    "step_size": 100
     },
     "max_epochs": 10,

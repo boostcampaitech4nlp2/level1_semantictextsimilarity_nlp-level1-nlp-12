@@ -50,42 +50,41 @@ def main(config_parser):
         log_every_n_steps=configs.pop('log_every_n_steps', 10),
         deterministic=True, 
         logger=wandb_logger,
-        callbacks=[checkpoint_callback, earlystop_callback]
+        callbacks=[checkpoint_callback, earlystop_callback],
+        fast_dev_run=configs.pop('debugging_run', False)
     )
     logger.info(trainer)
 
     #if configs.pop('resume', None):
-    trainer.fit(model=model_module, datamodule=dataloader_module)
-    trainer.test(model=model_module, datamodule=dataloader_module)
+    #trainer.fit(model=model_module, datamodule=dataloader_module)
+    #trainer.test(model=model_module, datamodule=dataloader_module)
 
     # Inference
-    predictions = trainer.predict(model=model_module, datamodule=dataloader_module)
+    #predictions = trainer.predict(model=model_module, datamodule=dataloader_module)
 
     # 예측된 결과를 형식에 맞게 반올림하여 준비합니다.
-    predictions = list(round(float(i), 1) for i in torch.cat(predictions))
+    #predictions = list(round(float(i), 1) for i in torch.cat(predictions))
 
     # output 형식을 불러와서 예측된 결과로 바꿔주고, output.csv로 출력합니다.
-    output = pd.read_csv('./data/sample_submission.csv')
-    output['target'] = predictions
-    output.to_csv('./data/output.csv', index=False)
+    #output = pd.read_csv('./data/sample_submission.csv')
+    #output['target'] = predictions
+    #output.to_csv('./data/output.csv', index=False)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='PyTorch Template')
     parser.add_argument('-c', '--config', default='config.json', type=str,
                       help='config file path (default: None)')
-    """parser.add_argument('-r', '--resume', default=None, type=str,
-                      help='path to latest checkpoint (default: None)')"""
-    parser.add_argument('-d', '--device', default=None, type=str,
-                      help='indices of GPUs to enable (default: all)')
+    parser.add_argument('-d', '--device', default=None, type=str)
+    parser.add_argument('-r', '--resume', default=None, type=str)
 
     # custom cli options to modify configuration from default values given in json file.
     CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')
     options = [
-        CustomArgs(['-r', '--resume'], type=float, target='lr'),
         CustomArgs(['--lr', '--learning_rate'], type=float, target='lr'),
         CustomArgs(['--bs', '--batch_size'], type=int, target='batch_size'),
-        CustomArgs(['--me', '--max_epochs'], type=int, target='max_epochs')
+        CustomArgs(['--me', '--max_epochs'], type=int, target='max_epochs'),
+        CustomArgs(['--dr', '--debugging_run'], type=bool, target='debugging_run')
     ]
     config_parser = ConfigParser.from_args(parser, options)
 
