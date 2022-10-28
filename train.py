@@ -3,13 +3,13 @@ import os
 import collections
 import wandb
 import torch
-import numpy as np
+import pandas as pd
 import data_loader.data_loaders as module_data
 import model.model as module_model
 from parse_config import ConfigParser
 from pytorch_lightning import seed_everything, Trainer
 from pytorch_lightning.loggers import WandbLogger
-from pytorch_lightning.callbacks import EarlyStopping
+from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 
 
 # fix random seeds for reproducibility
@@ -27,13 +27,20 @@ def main(config_parser):
     model_module = getattr(module_model, config_parser['model'])(**configs)
 
     # custom wandb logger & checkpoint_callback
-    # more info: https://docs.wandb.ai/guides/integrations/lightning
+    ########### more info ##############
+    # checkpoint: https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.callbacks.ModelCheckpoint.html
+    # wandb : https://docs.wandb.ai/guides/integrations/lightning
     earlystop_callback = EarlyStopping(monitor="val_loss")
-
-    wandb.init()
+    checkpoint_callback = ModelCheckpoint(
+                monitor='val_loss',
+                mode='min',
+                save_top_k=2
+            )
+    
     wandb_name = f"{configs['optimizer']}-{configs['batch_size']}-{configs['lr']}"
     wandb_project = "sts"
-    wandb_logger = WandbLogger(wandb_name, wandb_project)
+    wandb.init(name=wandb_name, project=wandb_project)
+    wandb_logger = WandbLogger()
 
     # build trainer, then print to console
     # https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
@@ -43,7 +50,7 @@ def main(config_parser):
         log_every_n_steps=configs.pop('log_every_n_steps', 10),
         deterministic=True, 
         logger=wandb_logger,
-        callbacks=[earlystop_callback]
+        callbacks=[checkpoint_callback, earlystop_callback]
     )
     logger.info(trainer)
 

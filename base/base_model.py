@@ -18,6 +18,9 @@ class BaseModel(pl.LightningModule):
 
         self.checkpoint = configs['checkpoint']
         self.lr = configs.pop('lr', 1e-5)
+        self.lr_scheduler = configs.pop('lr_scheduler', None)
+        if self.lr_scheduler is not None:
+            self.lr_scheduler_args = configs.pop('lr_scheduler_args')
         self.max_epochs = configs.pop('max_epochs')
         self.optimizer = configs['optimizer']
         self.criterion = configs['criterion']
@@ -67,8 +70,8 @@ class BaseModel(pl.LightningModule):
         loss = self.criterion(logits, y.float())
         self.log("val_loss", loss)
         for metric in self.metrics:
-            metric_fn = getattr(module_metric, metric)
-            self.log("val_" + metric, metric_fn(logits.squeeze(), y.squeeze()))
+            score = getattr(module_metric, metric)(logits.squeeze(), y.squeeze())
+            self.log("val_" + metric, score)
 
         return loss
 
@@ -76,8 +79,8 @@ class BaseModel(pl.LightningModule):
         x, y = batch
         logits = self.forward(x)
         for metric in self.metrics:
-            metric_fn = getattr(module_metric, metric)
-            self.log("test_" + metric, metric_fn(logits.squeeze(), y.squeeze()))
+            score = getattr(module_metric, metric)(logits.squeeze(), y.squeeze())
+            self.log("test_" + metric, score)
 
     def predict_step(self, batch, batch_idx):
         x = batch
@@ -91,14 +94,16 @@ class BaseModel(pl.LightningModule):
             self.lr
         )
 
-        """if self.lr_scheduler:
-            self.lr_scheduler = self.lr_scheduler(optimizer=self.optimizer)
+        if self.lr_scheduler:
+            lr_scheduler = getattr(optim.lr_scheduler, self.lr_scheduler)(
+                    **self.lr_scheduler_args
+                    )
             return {
-                "optimizer": self.optimizer,
-                "lr_scheduler": self.lr_scheduler
+                "optimizer": optimizer,
+                "lr_scheduler": lr_scheduler
             }
-        else:"""
-        return optimizer
+        else:
+            return optimizer
 
     def __str__(self):
         """
