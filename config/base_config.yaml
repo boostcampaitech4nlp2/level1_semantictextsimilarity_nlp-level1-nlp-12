@@ -1,0 +1,36 @@
+project: sts
+name: shchoi
+path:
+    train_path: ./data/train.csv
+    dev_path: ./data/dev.csv
+    test_path: ./data/dev.csv
+    predict_path: ./data/test.csv
+
+data:
+    shuffle: True
+    augmentation: # adea, bt 등등
+    
+model:
+    model_name: klue/roberta-small
+    saved_name: base_model
+
+train:
+    seed: 42
+    gpus: 1
+    batch_size: 16
+    max_epoch: 1
+    learning_rate: 1e-5
+    logging_step: 1
+
+optimizer:
+    name: Adam
+    weight_decay: 0,
+    amsgrad: true
+
+scheduler: 
+    name: StepLR
+    step_size: 50,
+    gamma: 0.1
+
+
+ 

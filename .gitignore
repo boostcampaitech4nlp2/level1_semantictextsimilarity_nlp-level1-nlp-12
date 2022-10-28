@@ -1,0 +1,4 @@
+data/
+dataloader/__pycache__/dataloader.cpython-38.pyc
+model/__pycache__/model.cpython-38.pyc
+*.pyc
