@@ -96,6 +96,7 @@ class BaseModel(pl.LightningModule):
 
         if self.lr_scheduler:
             lr_scheduler = getattr(optim.lr_scheduler, self.lr_scheduler)(
+                    optimizer,
                     **self.lr_scheduler_args
                     )
             return {
