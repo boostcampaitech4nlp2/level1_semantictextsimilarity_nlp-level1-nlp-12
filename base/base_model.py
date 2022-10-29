@@ -12,7 +12,7 @@ class BaseModel(pl.LightningModule):
     """
     def __init__(self, **configs):
         super().__init__()
-        self.save_hyperparameters(ignore='metrics')
+        self.save_hyperparameters()
         model_args = configs['model_args']
         self.architecture = model_args.pop('architecture', None)
 
@@ -71,7 +71,7 @@ class BaseModel(pl.LightningModule):
         self.log("val_loss", loss)
         for metric in self.metrics:
             score = getattr(module_metric, metric)(logits.squeeze(), y.squeeze())
-            print('val_'+metric, score)
+            vars(self).update({'val_'+metric: score})
             self.log("val_" + metric, score)
 
         return loss
@@ -81,7 +81,11 @@ class BaseModel(pl.LightningModule):
         logits = self.forward(x)
         for metric in self.metrics:
             score = getattr(module_metric, metric)(logits.squeeze(), y.squeeze())
+            vars(self).update({'test_'+metric: score})
             self.log("test_" + metric, score)
+
+        return loss
+
 
     def predict_step(self, batch, batch_idx):
         x = batch
