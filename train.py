@@ -32,15 +32,15 @@ def main(config_parser):
     # wandb : https://docs.wandb.ai/guides/integrations/lightning
     earlystop_callback = EarlyStopping(monitor="val_loss")
     checkpoint_callback = ModelCheckpoint(
-                monitor='val_loss',
-                mode='min',
+                monitor='val_pearson',
+                mode='max',
                 save_top_k=2
             )
     
-    wandb_name = f"{configs['optimizer']}-{configs['batch_size']}-{configs['lr']}"
+    wandb_name = f"wjl-{configs['optimizer']}-{configs['batch_size']}-{configs['lr']}"
     wandb_project = "sts"
     wandb.init(name=wandb_name, project=wandb_project)
-    wandb_logger = WandbLogger()
+    wandb_logger = WandbLogger(log_model='all')
 
     # build trainer, then print to console
     # https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html

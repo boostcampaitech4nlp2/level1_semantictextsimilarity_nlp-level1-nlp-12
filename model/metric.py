@@ -1,8 +1,8 @@
 import torch
 import torchmetrics
 
-def pearson(logits, y):
-    return torchmetrics.functional.pearson_corrcoef(logits, y)
+def pearson(output, target):
+    return torchmetrics.functional.pearson_corrcoef(output, target)
 
 def accuracy(output, target):
     with torch.no_grad():

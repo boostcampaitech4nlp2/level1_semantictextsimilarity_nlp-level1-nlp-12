@@ -10,7 +10,7 @@
     "batch_size": 32,
     "criterion": "l1_loss",
     "optimizer": "AdamW",
-    "lr": 1e-3,
+    "lr": 1e-4,
     "lr_scheduler": "StepLR",
     "lr_scheduler_args": {
 	    "step_size": 100
