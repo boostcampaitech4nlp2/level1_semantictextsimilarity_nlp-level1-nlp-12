@@ -1,7 +1,7 @@
 {
     "name": "STS",
     "accelerator": "cuda",
-    "checkpoint": "beomi/KcELECTRA-base-v2022",
+    "checkpoint": "beomi/KcELECTRA-basee-v2022",
     "model": "Roberta",
     "model_args":{
         "architecture": "AutoModelForSequenceClassification",

@@ -71,6 +71,7 @@ class BaseModel(pl.LightningModule):
         self.log("val_loss", loss)
         for metric in self.metrics:
             score = getattr(module_metric, metric)(logits.squeeze(), y.squeeze())
+            print('val_'+metric, score)
             self.log("val_" + metric, score)
 
         return loss

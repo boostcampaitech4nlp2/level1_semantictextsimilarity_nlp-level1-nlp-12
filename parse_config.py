@@ -27,6 +27,10 @@ class ConfigParser:
         save_dir = Path('log') 
 
         exper_name = self.config['checkpoint']
+        if '/' in exper_name:
+            # remove huggingface pt model's organization name part
+            exper_name = exper_name.split('/')[1]
+
         if run_id is None: # use timestamp as default run-id
             run_id = datetime.now(timezone('Asia/Seoul')).strftime(r'%m%d_%H%M%S')
         self._save_dir = save_dir / 'models' / exper_name / run_id
