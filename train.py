@@ -57,7 +57,7 @@ def main(config_parser):
 
     #if configs.pop('resume', None):
     trainer.fit(model=model_module, datamodule=dataloader_module)
-    print(f'Best checkpoint saved at {trainer.checkpoint_callback.best_model_path}')
+    logger.info(f'Best checkpoint saved at {trainer.checkpoint_callback.best_model_path}')
     #trainer.test(model=model_module, datamodule=dataloader_module)
 
     # Inference
