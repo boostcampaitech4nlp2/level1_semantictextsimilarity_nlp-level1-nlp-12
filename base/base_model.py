@@ -71,18 +71,18 @@ class BaseModel(pl.LightningModule):
         self.log("val_loss", loss)
         for metric in self.metrics:
             score = getattr(module_metric, metric)(logits.squeeze(), y.squeeze())
-            vars(self).update({'val_'+metric: score})
-            self.log("val_" + metric, score)
+            self.log("val_pearson", score)
 
         return loss
 
     def test_step(self, batch, batch_idx):
         x, y = batch
         logits = self.forward(x)
+        loss = self.criterion(logits, y.float())
+        self.log("test_loss", loss)
         for metric in self.metrics:
             score = getattr(module_metric, metric)(logits.squeeze(), y.squeeze())
-            vars(self).update({'test_'+metric: score})
-            self.log("test_" + metric, score)
+            self.log("test_pearson", score)
 
         return loss
 
