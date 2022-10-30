@@ -70,6 +70,6 @@ data/raw_data 폴더에 train.csv, dev.csv, test.csv 추가
 # How to Run
 
 ```bash
-$ python train.py
+$ sh train.sh
 ```
 

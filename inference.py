@@ -5,14 +5,15 @@ import numpy as np
 
 import torch
 
-from configs.configs import config
+import argparse
+from omegaconf import OmegaConf
 from dataloader.dataloader import DataLoader
 
 import pytorch_lightning as pl
 
 
 # set seed
-def seed_everything(seed=42):
+def seed_everything(seed):
     random.seed(seed)
     np.random.seed(seed)
     os.environ["PYTHONHASHSEED"] = str(seed)
@@ -27,21 +28,24 @@ def seed_everything(seed=42):
 def main(config):
     print("⚡ get dataloader")
     dataloader = DataLoader(
-        config.model_name,
-        config.batch_size,
-        config.shuffle,
-        config.train_path,
-        config.dev_path,
-        config.test_path,
-        config.predict_path,
+        config.model.name,
+        config.train.batch_size,
+        config.data.shuffle,
+        config.path.train_path,
+        config.path.dev_path,
+        config.path.test_path,
+        config.path.predict_path,
     )
 
     print("⚡ get model")
-    model = torch.load("model.pt")
+    model = torch.load(f"{config.model.saved_name}.pt")
 
     print("⚡ get trainer")
     trainer = pl.Trainer(
-        accelerator="gpu", devices=1, max_epochs=config.max_epoch, log_every_n_steps=1
+        accelerator="gpu",
+        devices=1,
+        max_epochs=config.train.max_epoch,
+        log_every_n_steps=1,
     )
     predictions = trainer.predict(model=model, datamodule=dataloader)
 
@@ -53,7 +57,11 @@ def main(config):
 
 
 if __name__ == "__main__":
-    seed_everything()
-    config = config
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", type=str, default="base_config")
+    args, _ = parser.parse_known_args()
+    config = OmegaConf.load(f"./configs/{args.config}.yaml")
+
+    seed_everything(config.train.seed)
 
     main(config)

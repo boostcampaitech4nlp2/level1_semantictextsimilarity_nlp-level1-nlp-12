@@ -3,9 +3,9 @@ import torch
 
 def get_optimizer(parameters, config):
     if config.optimizer == "SGD":
-        optimizer = torch.optim.SGD(parameters, lr=config.learning_rate)
+        optimizer = torch.optim.SGD(parameters, lr=config.train.learning_rate)
     if config.optimizer == "AdamW":
-        optimizer = torch.optim.AdamW(parameters, lr=config.learning_rate)
+        optimizer = torch.optim.AdamW(parameters, lr=config.train.learning_rate)
     return optimizer
 
 

@@ -10,17 +10,16 @@ from models.loss_function import get_loss_func
 class Model(pl.LightningModule):
     def __init__(self, config):
         super().__init__()
-        self.save_hyperparameters()  # 이거 무슨용도인지 찾아보기
+        self.save_hyperparameters()
 
         self.config = config
-        self.model_name = config.model_name
-        self.lr = config.learning_rate
+        self.model_name = config.model.name
+        self.lr = config.train.learning_rate
 
         self.model = AutoModelForSequenceClassification.from_pretrained(
             pretrained_model_name_or_path=self.model_name, num_labels=1
         )
 
-        # self.loss_func = torch.nn.L1Loss()
         self.loss_func = get_loss_func(config)
 
     def forward(self, x):

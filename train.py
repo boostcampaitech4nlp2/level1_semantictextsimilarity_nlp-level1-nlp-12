@@ -4,17 +4,18 @@ import numpy as np
 
 import torch
 
-from configs.configs import config
+import argparse
 from models.model import Model
 from dataloader.dataloader import DataLoader
 from trainer.trainer import Trainer
 
+from omegaconf import OmegaConf
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import WandbLogger
 
 
 # set seed
-def seed_everything(seed=42):
+def seed_everything(seed):
     random.seed(seed)
     np.random.seed(seed)
     os.environ["PYTHONHASHSEED"] = str(seed)
@@ -28,43 +29,52 @@ def seed_everything(seed=42):
 
 def main(config):
     exp_name = "_".join(
-        [
-            config.name,
-            config.info,
-            config.optimizer,
-            config.scheduler,
-            str(config.learning_rate),
-            str(config.batch_size),
-        ]
+        map(
+            str,
+            [
+                config.wandb.name,
+                config.wandb.info,
+                config.model.name,
+                config.optimizer,
+                config.scheduler,
+                config.train.learning_rate,
+                config.train.batch_size,
+            ],
+        )
     )
-    wandb_logger = WandbLogger(name=exp_name, project=config.wandb_project)
+    wandb_logger = WandbLogger(name=exp_name, project=config.wandb.project)
 
     print("⚡ get dataloader")
     dataloader = DataLoader(
-        config.model_name,
-        config.batch_size,
-        config.shuffle,
-        config.train_path,
-        config.dev_path,
-        config.test_path,
-        config.predict_path,
+        config.model.name,
+        config.train.batch_size,
+        config.data.shuffle,
+        config.path.train_path,
+        config.path.dev_path,
+        config.path.test_path,
+        config.path.predict_path,
     )
 
     print("⚡ get model")
     model = Model(config)
 
     print("⚡ get trainer")
-    trainer = Trainer(config, wandb_logger).trainer
+    trainer = Trainer(config, wandb_logger)
 
     print("⚡ Training Start ⚡")
     trainer.fit(model=model, datamodule=dataloader)
     trainer.test(model=model, datamodule=dataloader)
 
     torch.save(model, "model.pt")
+    torch.save(model, f"{config.model.saved_name}.pt")
 
 
 if __name__ == "__main__":
-    seed_everything()
-    config = config
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", type=str, default="base_config")
+    args, _ = parser.parse_known_args()
+    config = OmegaConf.load(f"./configs/{args.config}.yaml")
+
+    seed_everything(config.train.seed)
 
     main(config)
