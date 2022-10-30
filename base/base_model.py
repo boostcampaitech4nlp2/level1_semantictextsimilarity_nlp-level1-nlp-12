@@ -5,6 +5,7 @@ import torch.optim as optim
 import pytorch_lightning as pl
 import model.metric as module_metric
 import model.loss as module_loss
+import torchmetrics
 
 class BaseModel(pl.LightningModule):
     """
@@ -69,9 +70,10 @@ class BaseModel(pl.LightningModule):
         logits = self.forward(x)
         loss = self.criterion(logits, y.float())
         self.log("val_loss", loss)
-        for metric in self.metrics:
+        self.log("val_pearson", torchmetrics.functional.pearson_corrcoef(logits.squeeze(), y.squeeze()).item())
+        """for metric in self.metrics:
             score = getattr(module_metric, metric)(logits.squeeze(), y.squeeze())
-            self.log("val_pearson", score)
+            self.log("val_pearson", score)"""
 
         return loss
 
@@ -80,10 +82,10 @@ class BaseModel(pl.LightningModule):
         logits = self.forward(x)
         loss = self.criterion(logits, y.float())
         self.log("test_loss", loss)
-        for metric in self.metrics:
+        self.log("test_pearson", torchmetrics.functional.pearson_corrcoef(logits.squeeze(), y.squeeze()))
+        """for metric in self.metrics:
             score = getattr(module_metric, metric)(logits.squeeze(), y.squeeze())
-            self.log("test_pearson", score)
-
+            self.log("test_pearson", score)"""
         return loss
 
 

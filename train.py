@@ -32,8 +32,8 @@ def main(config_parser):
     # wandb : https://docs.wandb.ai/guides/integrations/lightning
     earlystop_callback = EarlyStopping(monitor="val_loss")
     checkpoint_callback = ModelCheckpoint(
-                monitor='val_pearson',
-                mode='max',
+                monitor='val_loss',
+                mode='min',
                 save_top_k=2
             )
     
@@ -58,18 +58,18 @@ def main(config_parser):
     #if configs.pop('resume', None):
     trainer.fit(model=model_module, datamodule=dataloader_module)
     logger.info(f'Best checkpoint saved at {trainer.checkpoint_callback.best_model_path}')
-    #trainer.test(model=model_module, datamodule=dataloader_module)
+    trainer.test(model=model_module, datamodule=dataloader_module)
 
     # Inference
-    #predictions = trainer.predict(model=model_module, datamodule=dataloader_module)
+    predictions = trainer.predict(model=model_module, datamodule=dataloader_module)
 
     # 예측된 결과를 형식에 맞게 반올림하여 준비합니다.
-    #predictions = list(round(float(i), 1) for i in torch.cat(predictions))
+    predictions = list(round(float(i), 1) for i in torch.cat(predictions))
 
     # output 형식을 불러와서 예측된 결과로 바꿔주고, output.csv로 출력합니다.
-    #output = pd.read_csv('./data/sample_submission.csv')
-    #output['target'] = predictions
-    #output.to_csv('./data/output.csv', index=False)
+    output = pd.read_csv('./data/sample_submission.csv')
+    output['target'] = predictions
+    output.to_csv('./data/output.csv', index=False)
 
 
 if __name__ == '__main__':
