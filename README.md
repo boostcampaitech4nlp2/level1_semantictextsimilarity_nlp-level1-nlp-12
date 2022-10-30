@@ -56,7 +56,7 @@ STS(Semantic Text Similarity)는 복수의 문장에 대한 유사도를 선형�
 ### 1. Requirements
 
 ```bash
-pip install -r requirements.txt
+$ pip install -r requirements.txt
 ```
 
 ### 2. prepare dataset
@@ -64,3 +64,12 @@ pip install -r requirements.txt
 ```bash
 data/raw_data 폴더에 train.csv, dev.csv, test.csv 추가
 ```
+
+<br/>
+
+# How to Run
+
+```bash
+$ python train.py
+```
+
