@@ -3,9 +3,10 @@ from pytorch_lightning.loggers import WandbLogger
 import wandb
 import argparse
 import torch
-import pytorch_lightning as pl
 from dataloader.dataloader import DataLoader
 from model.model import Model
+from trainer.trainer import Trainer
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -20,14 +21,13 @@ if __name__ == "__main__":
             [
                 cfg.name,
                 cfg.model.model_name,
-                cfg.optimizer,
-                cfg.scheduler.name,
+                cfg.optimizer.name,
+                cfg.lr_scheduler.name,
                 cfg.train.learning_rate,
                 cfg.train.batch_size,
             ],
         )
     )
-    wandb.init(config=cfg, name=exp_name, project=cfg.project)
     wandb_logger = WandbLogger(name=exp_name, project=cfg.project)
 
     dataloader = DataLoader(
@@ -41,7 +41,7 @@ if __name__ == "__main__":
     )
     model = Model(cfg)
 
-    trainer = pl.Trainer(
+    trainer = Trainer(
         accelerator="gpu",
         devices=cfg.train.gpus,
         max_epochs=cfg.train.max_epoch,

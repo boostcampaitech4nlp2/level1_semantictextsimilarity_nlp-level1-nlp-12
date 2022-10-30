@@ -1,17 +1,18 @@
 project: sts
 name: shchoi
 path:
-    train_path: ./data/train.csv
-    dev_path: ./data/dev.csv
-    test_path: ./data/dev.csv
-    predict_path: ./data/test.csv
+    train_path: /opt/ml/wandb_base_project/data/train.csv
+    dev_path: /opt/ml/wandb_base_project/data/dev.csv
+    test_path: /opt/ml/wandb_base_project/data/dev.csv
+    predict_path: /opt/ml/wandb_base_project/data/test.csv
 
 data:
     shuffle: True
     augmentation: # adea, bt 등등
-    
+  
+metric: PearsonCorrCoef
 model:
-    model_name: klue/roberta-small
+    model_name: jhgan/ko-sroberta-sts
     saved_name: base_model
 
 train:
@@ -22,15 +23,19 @@ train:
     learning_rate: 1e-5
     logging_step: 1
 
-optimizer:
-    name: Adam
-    weight_decay: 0,
-    amsgrad: true
+loss: L1Loss
 
-scheduler: 
+optimizer: #torch.optim에 존재하는 optimizer만 사용가능. 함수명과 args의 이름이 정확히 일치해야 합니다.
+    name: AdamW
+    args: #
+        weight_decay: 0.01
+        amsgrad: False
+
+lr_scheduler: #torch.optim.lr_cheduler에 존재하는 lr_scheduler만 사용가능.
     name: StepLR
-    step_size: 50,
-    gamma: 0.1
+    args:
+        step_size: 50
+        gamma: 0.1
 
 
  
