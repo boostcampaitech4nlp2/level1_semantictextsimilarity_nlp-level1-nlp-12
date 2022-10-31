@@ -72,8 +72,18 @@ def main(config):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, default="base_config")
+
+    # sweep- 하이퍼파라미터 튜닝 인자
+    parser.add_argument("--sweep", type=int, default=0)
+    parser.add_argument("--batch_size", type=int, default=2)
+
     args, _ = parser.parse_known_args()
+
     config = OmegaConf.load(f"./configs/{args.config}.yaml")
+    print("⚡ config file: ", args.config)
+
+    if args.sweep == 1:
+        config.train.batch_size = args.batch_size
 
     seed_everything(config.train.seed)
 

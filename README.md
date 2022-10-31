@@ -69,7 +69,19 @@ data/raw_data 폴더에 train.csv, dev.csv, test.csv 추가
 
 # How to Run
 
+## How to train
+
 ```bash
 $ sh train.sh
 ```
 
+<br/>
+
+## How to sweep hyperparameter tuning
+```bash
+$ sh sweep.sh
+
+# Launch agents
+## bayes나 random 탐색은 프로세스를 직접 종료하기 전까지 계속 탐색하므로 LIMIT_NUM으로 학습 횟수를 제한할 수 있다.
+$ wandb agent --count [LIMIT_NUM] [SWEEPID] 
+```
