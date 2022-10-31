@@ -19,7 +19,8 @@ class Model(pl.LightningModule):
         self.model = AutoModelForSequenceClassification.from_pretrained(
             pretrained_model_name_or_path=self.model_name, num_labels=1
         )
-
+        self.model.resize_token_embeddings(50137) # special token
+        
         # self.loss_func = torch.nn.L1Loss()
         self.loss_func = get_loss_func(config)
 
