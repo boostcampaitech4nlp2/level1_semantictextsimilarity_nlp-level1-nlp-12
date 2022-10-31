@@ -79,30 +79,26 @@ class STSDataLoader(BaseDataLoader):
             self.train_dataset,
             batch_size=self.batch_size, 
             shuffle=self.shuffle,
-            collate_fn = self.collate_fn,
             num_workers=self.num_workers
-        )
+        ) # collate_fn = self.collate_fn,
 
     def val_dataloader(self):
         return DataLoader(
             self.val_dataset,
             batch_size=self.batch_size, 
-            collate_fn = self.collate_fn,
             num_workers=self.num_workers
-        )
+        ) # collate_fn = self.collate_fn,
 
     def test_dataloader(self):
         return DataLoader(
             self.test_dataset,
             batch_size=self.batch_size, 
-            collate_fn = self.collate_fn,
             num_workers=self.num_workers
-        )
+        ) # collate_fn = self.collate_fn,
         
     def predict_dataloader(self):
         return DataLoader(
             self.predict_dataset,
             batch_size=self.batch_size, 
-            collate_fn = self.collate_fn,
             num_workers=self.num_workers
-        )
+        ) # collate_fn = self.collate_fn,

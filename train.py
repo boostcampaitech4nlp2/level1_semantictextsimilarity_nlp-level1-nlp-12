@@ -25,6 +25,7 @@ def main(config_parser):
     # setup data_loader and model
     dataloader_module = getattr(module_data, config_parser['data_loader'])(**configs)
     model_module = getattr(module_model, config_parser['model'])(**configs)
+    logger.info(model_module)
 
     # custom wandb logger & checkpoint_callback
     ########### more info ##############
@@ -47,7 +48,7 @@ def main(config_parser):
     trainer = Trainer(
         accelerator=configs.pop('accelerator', 'auto'),
         max_epochs=configs.pop('max_epochs', 10),
-        log_every_n_steps=configs.pop('log_every_n_steps', 10),
+        log_every_n_steps=configs.pop('log_every_n_steps', 1),
         deterministic=True, 
         logger=wandb_logger,
         callbacks=[checkpoint_callback, earlystop_callback],

@@ -2,7 +2,7 @@
     "name": "STS",
     "accelerator": "cuda",
     "checkpoint": "beomi/KcELECTRA-base-v2022",
-    "model": "Roberta",
+    "model": "Base",
     "model_args":{
         "architecture": "AutoModelForSequenceClassification",
         "num_labels": 1
@@ -17,10 +17,8 @@
     },
     "max_epochs": 15,
     "max_length": 160,
-    "log_every_n_steps": 30,
-    "metrics": [
-        "pearson"
-    ],
+    "log_every_n_steps": 1,
+    "metric": "pearson",
     "data_loader": "STSDataLoader",
     "data_loader_args": {
         "data_dir": "data/",
@@ -29,7 +27,7 @@
         "validation_split": 0.1,
         "collate_fn": "default_collate",
         "train_path": "data/train.csv",
-        "val_path": "",
+        "val_path": "data/dev.csv",
         "test_path": "data/dev.csv",
         "predict_path": "data/test.csv"
     },

@@ -16,14 +16,17 @@ class BaseDataLoader(LightningDataModule):
         super().__init__()
         self.checkpoint = configs['checkpoint']
         self.batch_size = configs.pop('batch_size', 16)
-        self.tokenizer = AutoTokenizer.from_pretrained(self.checkpoint)
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            self.checkpoint,
+            max_length=configs['max_length']
+        )
 
         # dataloader-specific config
         dataloader_configs =  configs.pop('data_loader_args')
         self.shuffle = dataloader_configs.pop("shuffle", True)
         self.num_workers = dataloader_configs.pop("num_workers", 1)
         self.validation_split = dataloader_configs.pop("validation_split", 0.1)
-        self.collate_fn = getattr(torch.utils.data, dataloader_configs.pop("collate_fn", "default_collate"))
+        #self.collate_fn = getattr(torch.utils.data, dataloader_configs.pop("collate_fn", "default_collate"))
         
         self.train_path = dataloader_configs.pop("train_path", "")
         self.val_path = dataloader_configs.pop("val_path", "")
@@ -49,8 +52,5 @@ class BaseDataLoader(LightningDataModule):
     def _split_validation_set(self, dataset):
         val_len = int(self.validation_split * len(dataset))
         train_len = len(dataset) - val_len
-        return random_split(dataset, [train_len, val_len])        
-
-    """def prepare_data(self):
-        # download data for example"""
+        return random_split(dataset, [train_len, val_len]) 
         
