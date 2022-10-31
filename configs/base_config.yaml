@@ -1,11 +1,12 @@
 
 wandb:
   project: sts
-  name: kbh
+  name: kjh  # 이름
   info: AEDA # 기타 적용사항
 
 path:
-  train_path: ./data/aug_data/train.AEDA.csv
+  # aug_train_path: ./data/aug_data/train.AEDA.csv
+  train_path: ./data/raw_data/train.csv
   dev_path: ./data/raw_data/dev.csv
   test_path: ./data/raw_data/dev.csv
   predict_path: ./data/raw_data/test.csv
@@ -22,8 +23,8 @@ loss_func: L1Loss # L1Loss | ...
 train:
   seed: 42
   gpus: 1
-  batch_size: 16
-  max_epoch: 2
+  batch_size: 32
+  max_epoch: 30
   learning_rate: 1e-5
 
 optimizer: AdamW

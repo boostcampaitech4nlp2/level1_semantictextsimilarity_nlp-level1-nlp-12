@@ -20,6 +20,9 @@ class Model(pl.LightningModule):
             pretrained_model_name_or_path=self.model_name, num_labels=1
         )
 
+        # dataloader에 있는 tokenizer를 어떻게 끌어오지??
+        self.model.resize_token_embeddings(50137)
+        
         self.loss_func = get_loss_func(config)
 
     def forward(self, x):
