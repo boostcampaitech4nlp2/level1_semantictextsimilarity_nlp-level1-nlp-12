@@ -1,7 +1,7 @@
 {
     "name": "STS",
     "accelerator": "cuda",
-    "checkpoint": "beomi/KcELECTRA-base-v2022",
+    "checkpoint": "klue/roberta-small",
     "model": "Base",
     "model_args":{
         "architecture": "AutoModelForSequenceClassification",
@@ -10,7 +10,7 @@
     "batch_size": 32,
     "criterion": "l1_loss",
     "optimizer": "AdamW",
-    "lr": 1e-4,
+    "lr": 1e-5,
     "lr_scheduler": "StepLR",
     "lr_scheduler_args": {
 	    "step_size": 100

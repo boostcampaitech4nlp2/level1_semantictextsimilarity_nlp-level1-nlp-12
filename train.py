@@ -61,7 +61,7 @@ def main(config_parser):
     logger.info(f'Best checkpoint saved at {trainer.checkpoint_callback.best_model_path}')
     trainer.test(model=model_module, datamodule=dataloader_module)
 
-    # Inference
+    """# Inference
     predictions = trainer.predict(model=model_module, datamodule=dataloader_module)
 
     # 예측된 결과를 형식에 맞게 반올림하여 준비합니다.
@@ -70,7 +70,7 @@ def main(config_parser):
     # output 형식을 불러와서 예측된 결과로 바꿔주고, output.csv로 출력합니다.
     output = pd.read_csv('./data/sample_submission.csv')
     output['target'] = predictions
-    output.to_csv('./data/output.csv', index=False)
+    output.to_csv('./data/output.csv', index=False)"""
 
 
 if __name__ == '__main__':
