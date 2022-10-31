@@ -143,20 +143,97 @@ class DataLoader(pl.LightningDataModule):
 
 
 class ContrastiveDataset(torch.utils.data.Dataset):
-    def __init__(self):
-        pass
+    def __init__(self, inputs):
+        self.inputs = inputs
+
+    def __getitem__(self, idx):
+        return (
+            torch.tensor(self.inputs[idx]["main_input_ids"]),
+            torch.tensor(self.inputs[idx]["pos_input_ids"]),
+            torch.tensor(self.inputs[idx]["neg_input_ids"]),
+        )
+
+    def __len__(self):
+        return len(self.inputs)
 
 
 class ContrastiveDataLoader(pl.LightningDataModule):
-    def __init__(self):
-        pass
+    def __init__(self, model_name, batch_size, shuffle, train_path, dev_path):
+        super().__init__()
+        self.model_name = model_name
+        self.batch_size = batch_size
+        self.shuffle = shuffle
 
-    def tokenizing(self):
-        pass
+        self.train_path = train_path
+        self.dev_path = dev_path
 
-    def preprocessing(self):
-        pass
+        self.train_dataset = None
+        self.val_dataset = None
+
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name, max_length=160)
+
+    def tokenizing(self, dataframe):
+        data = []
+
+        for idx, item in tqdm(
+            dataframe.iterrows(), desc="tokenizing", total=len(dataframe)
+        ):
+            temp = dict()
+            main_sent = item["sentence_1"]
+            pos_pair = item["sentence_2"]
+            neg_idx = (idx + 1) % len(dataframe)
+            neg_pair_1 = dataframe.iloc[neg_idx]["sentence_1"]
+
+            main_tokenized = self.tokenizer(
+                main_sent,
+                add_special_tokens=True,
+                padding="max_length",
+                truncation=True,
+            )
+            pos_tokenized = self.tokenizer(
+                pos_pair, add_special_tokens=True, padding="max_length", truncation=True
+            )
+            neg_tokenized = self.tokenizer(
+                neg_pair_1,
+                add_special_tokens=True,
+                padding="max_length",
+                truncation=True,
+            )
+
+            temp["main_input_ids"] = main_tokenized["input_ids"]
+            temp["pos_input_ids"] = pos_tokenized["input_ids"]
+            temp["neg_input_ids"] = neg_tokenized["input_ids"]
+
+            data.append(temp)
+        return data
+
+    def preprocessing(self, dataframe):
+        pos_data = dataframe[dataframe["binary-label"] == 1].reset_index(drop=True)
+
+        inputs = self.tokenizing(pos_data)
+
+        return inputs
 
     def setup(self, stage="fit"):
         if stage == "fit":
             train_data = pd.read_csv(self.train_path)
+            val_data = pd.read_csv(self.dev_path)
+
+            train_inputs = self.preprocessing(train_data)
+            val_inputs = self.preprocessing(val_data)
+
+            self.train_dataset = ContrastiveDataset(train_inputs)
+            self.val_dataset = ContrastiveDataset(val_inputs)
+
+    def train_dataloader(self):
+        return torch.utils.data.DataLoader(
+            self.train_dataset,
+            batch_size=self.batch_size,
+            shuffle=self.shuffle,
+            num_workers=4,
+        )
+
+    def val_dataloader(self):
+        return torch.utils.data.DataLoader(
+            self.val_dataset, batch_size=self.batch_size, num_workers=4
+        )
