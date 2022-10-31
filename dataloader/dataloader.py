@@ -71,6 +71,31 @@ class DataLoader(pl.LightningDataModule):
             )
             data.append(outputs["input_ids"])
         return data
+        
+    def special_tokenizing(self, dataframe) :
+        data = []
+
+        # add special_tokens
+        special_tokens_dict = {'additional_special_tokens': ['[rtt]','[sampled]']}
+        num_added_toks = self.tokenizer.add_special_tokens(special_tokens_dict)
+
+        for idx, item in tqdm(
+            dataframe.iterrows(), desc="tokenizing", total=len(dataframe)
+        ):
+            text = "[SEP]".join(
+                [item[text_column] for text_column in self.text_columns]
+            )
+
+            if 'rtt' in item['source'] :
+                text = "[rtt]" + text
+            else :
+                text = "[sampled]" + text
+
+            outputs = self.tokenizer(
+                text, add_special_tokens=True, padding="max_length", truncation=True
+            )
+            data.append(outputs["input_ids"])
+        return data
 
     def preprocessing(self, data):
         data = data.drop(columns=self.delete_columns)

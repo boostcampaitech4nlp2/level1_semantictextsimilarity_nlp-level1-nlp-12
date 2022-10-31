@@ -1,11 +1,11 @@
 
 wandb:
   project: sts
-  name: kbh
-  info: AEDA # 기타 적용사항
+  name: jalee
+  info: AEDA_ovelap_special_token # 기타 적용사항
 
 path:
-  train_path: ./data/aug_data/train.AEDA.csv
+  train_path: ./data/aug_data/train_auged.csv
   dev_path: ./data/raw_data/dev.csv
   test_path: ./data/raw_data/dev.csv
   predict_path: ./data/raw_data/test.csv

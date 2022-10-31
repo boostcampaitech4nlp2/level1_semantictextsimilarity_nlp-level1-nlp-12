@@ -20,6 +20,7 @@ class Model(pl.LightningModule):
             pretrained_model_name_or_path=self.model_name, num_labels=1
         )
 
+        self.model.resize_token_embeddings(50137)
         self.loss_func = get_loss_func(config)
 
     def forward(self, x):
