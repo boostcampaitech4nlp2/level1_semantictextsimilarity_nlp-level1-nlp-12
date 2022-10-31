@@ -27,7 +27,7 @@ loss: L1Loss
 
 optimizer: #torch.optim에 존재하는 optimizer만 사용가능. 함수명과 args의 이름이 정확히 일치해야 합니다.
     name: AdamW
-    args: #
+    args:
         weight_decay: 0.01
         amsgrad: False
 
@@ -36,6 +36,7 @@ lr_scheduler: #torch.optim.lr_cheduler에 존재하는 lr_scheduler만 사용가
     args:
         step_size: 50
         gamma: 0.1
+
 
 
  

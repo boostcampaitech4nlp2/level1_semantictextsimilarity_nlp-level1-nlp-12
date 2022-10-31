@@ -74,7 +74,7 @@ class DataLoader(pl.LightningDataModule):
             data.append(outputs["input_ids"])
         return data
 
-    def preprocessing(self, data:pd.DataFrame):
+    def preprocessing(self, data: pd.DataFrame):
         # 안쓰는 컬럼을 삭제합니다.
         data = data.drop(columns=self.delete_columns)
 

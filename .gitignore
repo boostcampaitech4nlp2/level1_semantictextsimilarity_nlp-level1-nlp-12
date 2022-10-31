@@ -4,3 +4,4 @@ model/__pycache__/model.cpython-38.pyc
 *.pyc
 sts/
 wandb/
+*.pt
