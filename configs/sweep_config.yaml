@@ -1,0 +1,10 @@
+program: train.py
+method: bayes # grid | random | bayes
+metric:
+  name: val_pearson
+  goal: maximize
+parameters:
+  sweep:
+    values: [1]
+  batch_size:
+    values: [16, 32]
