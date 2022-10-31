@@ -24,7 +24,6 @@ class BaseModel(pl.LightningModule):
             self.lr_scheduler_args = configs.pop('lr_scheduler_args')
         self.max_epochs = configs.pop('max_epochs')
         self.optimizer = configs['optimizer']
-        #self.criterion = configs['criterion']
         self.criterion = getattr(module_loss, configs['criterion'])
         self.metric = getattr(module_metric, configs['metric'])
 
@@ -52,10 +51,61 @@ class BaseModel(pl.LightningModule):
     def forward(self, *inputs):
         """
         Forward pass logic
-
-        :return: Model output
+        Requires `forward` in the child class 
         """
-        pass
+        raise NotImplementedError
+
+    def training_step(self, batch, batch_idx):
+        x, y = batch
+        logits = self.forward(x)
+        loss = self.criterion(logits, y.float())
+        self.log("train_loss", loss)
+
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        x, y = batch
+        logits = self.forward(x)
+        loss = self.criterion(logits, y.float())
+        score = self.metric(logits.squeeze(), y.squeeze())
+        self.log("val_loss", loss)
+        self.log("val_pearson", score)
+
+        return loss
+
+    def test_step(self, batch, batch_idx):
+        x, y = batch
+        logits = self.forward(x)
+        #loss = self.criterion(logits, y.float())
+        score = self.metric(logits.squeeze(), y.squeeze())
+        #self.log("test_loss", loss)
+        self.log("test_pearson", score)
+        #return loss
+
+
+    def predict_step(self, batch, batch_idx):
+        x = batch
+        logits = self.forward(x)
+
+        return logits.squeeze()
+
+    def configure_optimizers(self):
+        optimizer = getattr(optim, self.optimizer)(
+            self.parameters(),
+            self.lr
+        )
+
+        if self.lr_scheduler:
+            lr_scheduler = getattr(optim.lr_scheduler, self.lr_scheduler)(
+                    optimizer,
+                    **self.lr_scheduler_args
+                    )
+            return {
+                "optimizer": optimizer,
+                "lr_scheduler": lr_scheduler
+            }
+        else:
+            return optimizer
 
     def __str__(self):
         """

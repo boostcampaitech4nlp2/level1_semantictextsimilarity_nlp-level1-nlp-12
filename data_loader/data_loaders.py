@@ -3,7 +3,13 @@ from torch.utils.data import Dataset, DataLoader
 from tqdm.auto import tqdm
 import torch
 
+
+class SentTransformerDataset(Dataset):
+    def __init__(self, inputs):
+        pass
+
 class CustomDataset(Dataset):
+    '''baseline code'''
     def __init__(self, inputs, targets=[]):
         self.inputs = inputs
         self.targets = targets
@@ -17,9 +23,9 @@ class CustomDataset(Dataset):
     def __len__(self):
         return len(self.inputs)
 
-
+    
 class STSDataLoader(BaseDataLoader):
-
+    '''augmented baseline code'''
     def __init__(self, **configs):
         super().__init__(**configs)
         

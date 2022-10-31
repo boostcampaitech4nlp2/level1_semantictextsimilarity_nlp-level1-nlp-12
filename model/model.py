@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+import pytorch_lightning as pl
 from base import BaseModel
 
 
@@ -19,57 +20,30 @@ class Base(BaseModel):
 
         return x
 
-    def training_step(self, batch, batch_idx):
-        x, y = batch
-        logits = self.forward(x)
-        loss = self.criterion(logits, y.float())
-        self.log("train_loss", loss)
+    
 
-        return loss
+class SentTransformer(pl.LightningModule):
+    
+    def __init__(self, **configs):
+        '''
+        ref: 
+            1. https://github.com/UKPLab/sentence-transformers/blob/master/examples/training/sts/training_stsbenchmark.py
+            2. https://www.sbert.net/examples/training/sts/README.html#training-data
+        '''
+        from sentence_transformers import SentenceTransformer, models, losses
+        super().__init__(**self) #"sentence-transformers/distiluse-base-multilingual-cased-v2"
 
-    def validation_step(self, batch, batch_idx):
-        x, y = batch
-        logits = self.forward(x)
-        loss = self.criterion(logits, y.float())
-        score = self.metric(logits.squeeze(), y.squeeze())
-        self.log("val_loss", loss)
-        self.log("val_pearson", score)
+        # get another pretrained model for reference sentences
 
-        return loss
+        # create pooler for the representations of self.lm 
+        self.pooler = nn.Linear(self.lm.config.dim, )
 
-    def test_step(self, batch, batch_idx):
-        x, y = batch
-        logits = self.forward(x)
-        #loss = self.criterion(logits, y.float())
-        score = self.metric(logits.squeeze(), y.squeeze())
-        #self.log("test_loss", loss)
-        self.log("test_pearson", score)
-        #return loss
+        self.model = SentenceTransformer(modules=[self.lm, self.pooler])
 
+    def forward(self, x):
+        x = self.model()
 
-    def predict_step(self, batch, batch_idx):
-        x = batch
-        logits = self.forward(x)
-
-        return logits.squeeze()
-
-    def configure_optimizers(self):
-        optimizer = getattr(optim, self.optimizer)(
-            self.parameters(),
-            self.lr
-        )
-
-        if self.lr_scheduler:
-            lr_scheduler = getattr(optim.lr_scheduler, self.lr_scheduler)(
-                    optimizer,
-                    **self.lr_scheduler_args
-                    )
-            return {
-                "optimizer": optimizer,
-                "lr_scheduler": lr_scheduler
-            }
-        else:
-            return optimizer
+    
 
 class ElectraDropout(BaseModel):
     def __init__(self, **configs):

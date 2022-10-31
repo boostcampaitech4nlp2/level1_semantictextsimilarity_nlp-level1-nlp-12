@@ -7,7 +7,7 @@
         "architecture": "AutoModelForSequenceClassification",
         "num_labels": 1
     },
-    "batch_size": 32,
+    "batch_size": 64,
     "criterion": "l1_loss",
     "optimizer": "AdamW",
     "lr": 1e-5,
