@@ -7,13 +7,22 @@ from dataloader.dataloader import DataLoader
 from model.model import Model
 from trainer.trainer import Trainer
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, default="")
-    args, _ = parser.parse_known_args()
+    parser.add_argument("--config", type=str, default="", required=True)
+    parser.add_argument("--learning_rate", type=float)
+    parser.add_argument("--weight_decay", type=float)
+    parser.add_argument("--max_epoch", type=int)
 
-    cfg = OmegaConf.load(f"./wandb_base_project/config/{args.config}.yaml")
+    args, _ = parser.parse_known_args()
+    cfg = OmegaConf.load(f"./config/{args.config}.yaml")
+    for arg_name, value in vars(args).items():
+        if arg_name == "learning_rate":
+            cfg.train.learning_rate = value
+        elif arg_name == "weight_decay":
+            cfg.optimizer.weight_decay = value
+        elif arg_name == "max_epoch":
+            cfg.optimizer.max_epoch = value
 
     exp_name = "_".join(
         map(

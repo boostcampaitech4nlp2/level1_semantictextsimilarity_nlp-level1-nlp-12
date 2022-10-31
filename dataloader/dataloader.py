@@ -3,6 +3,9 @@ import transformers
 import torch
 import pandas as pd
 from tqdm import tqdm
+import os
+
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
 class Dataset(torch.utils.data.Dataset):

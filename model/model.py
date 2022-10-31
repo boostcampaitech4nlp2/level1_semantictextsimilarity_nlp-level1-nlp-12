@@ -56,11 +56,7 @@ class Model(pl.LightningModule):
 
     def test_step(self, batch, batch_idx):
         x, y = batch
-        print(x)
         logits = self(x)
-        print(logits.squeeze())
-        print(y.squeeze())
-        print(self.metric(logits.squeeze(), y.squeeze()))
         self.log(
             "test_pearson",
             self.metric(logits.squeeze(), y.squeeze()),
@@ -80,4 +76,4 @@ class Model(pl.LightningModule):
         )
         lr_scheduler = getattr(torch.optim.lr_scheduler, self.lr_scheduler_info.name)
         lr_scheduler = lr_scheduler(optimizer, **self.lr_scheduler_info.args)
-        return optimizer, lr_scheduler
+        return {"optimizer": optimizer, "lr_scheduler": lr_scheduler}

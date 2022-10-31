@@ -1,0 +1,19 @@
+program: train.py
+method: random
+metric:
+  goal: maximize
+  name: test_pearson
+parameters:
+  learning_rate:
+    values: [0.00001, 0.00002, 0.00003]
+  weight_decay:
+    values: [0.001, 0.002, 0.003]
+  max_epochs:
+    values: [1, 2, 3]
+command:
+  - ${env}
+  - ${interpreter}
+  - ${program}
+  - "--config"
+  - base_config
+  - ${args}
