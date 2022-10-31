@@ -59,6 +59,13 @@ class DataLoader(pl.LightningDataModule):
         self.text_columns = ["sentence_1", "sentence_2"]
 
     def tokenizing(self, dataframe):
+        """
+        Args:
+            dataframe (DataFrame): csv를 읽어온 데이터프레임
+
+        Returns:
+            data (List): 'sentence_1 + [SEP] + sentence_2'를 tokenization한 값들을 담은 list를 반환
+        """
         data = []
         for idx, item in tqdm(
             dataframe.iterrows(), desc="tokenizing", total=len(dataframe)
@@ -73,6 +80,13 @@ class DataLoader(pl.LightningDataModule):
         return data
 
     def preprocessing(self, data):
+        """데이터프레임을 읽어서 tokenizing된 inputs list와 labels list를 반환
+        Args:
+            data (DataFrame): csv를 읽어온 데이터프레임
+
+        Returns:
+            inputs, targets
+        """
         data = data.drop(columns=self.delete_columns)
 
         try:
@@ -126,3 +140,23 @@ class DataLoader(pl.LightningDataModule):
         return torch.utils.data.DataLoader(
             self.predict_dataset, batch_size=self.batch_size, num_workers=4
         )
+
+
+class ContrastiveDataset(torch.utils.data.Dataset):
+    def __init__(self):
+        pass
+
+
+class ContrastiveDataLoader(pl.LightningDataModule):
+    def __init__(self):
+        pass
+
+    def tokenizing(self):
+        pass
+
+    def preprocessing(self):
+        pass
+
+    def setup(self, stage="fit"):
+        if stage == "fit":
+            train_data = pd.read_csv(self.train_path)

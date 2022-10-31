@@ -8,3 +8,4 @@ parameters:
     values: [1]
   batch_size:
     values: [16, 32]
+

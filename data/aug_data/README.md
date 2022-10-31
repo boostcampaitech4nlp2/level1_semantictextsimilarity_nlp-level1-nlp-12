@@ -1,6 +1,9 @@
 터미널 환경에서 아래처럼 augment.py를 실행시켜주세요.
 
-✋ AEDA 라이브러리를 사용하기 위해서는 JAVA_HOME 경로에 jvm.dll 파일이 존재하고 시스템 환경변수도 설정해주어야 합니다.
+✋ AEDA 라이브러리를 사용하기 위해서 jdk가 설치되어있어야 합니다.
+```
+$ apt install default-jdk
+```
 
 ```bash
 $ python data/utils/augment.py
