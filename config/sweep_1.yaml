@@ -8,7 +8,7 @@ parameters:
     values: [0.00001, 0.00002, 0.00003]
   weight_decay:
     values: [0.001, 0.002, 0.003]
-  max_epochs:
+  max_epoch:
     values: [1, 2, 3]
 command:
   - ${env}
