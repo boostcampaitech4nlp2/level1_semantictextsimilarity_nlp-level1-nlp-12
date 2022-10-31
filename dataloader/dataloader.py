@@ -9,7 +9,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
 class Dataset(torch.utils.data.Dataset):
-    def __init__(self, inputs, targets=[]):
+    def __init__(self, inputs: list, targets=[]):
         self.inputs = inputs
         self.targets = targets
 
@@ -29,13 +29,13 @@ class Dataset(torch.utils.data.Dataset):
 class DataLoader(pl.LightningDataModule):
     def __init__(
         self,
-        model_name,
-        batch_size,
-        shuffle,
-        train_path,
-        dev_path,
-        test_path,
-        predict_path,
+        model_name: str,
+        batch_size: int,
+        shuffle: bool,
+        train_path: str,
+        dev_path: str,
+        test_path: str,
+        predict_path: str,
     ):
         super().__init__()
         self.model_name = model_name
@@ -59,7 +59,7 @@ class DataLoader(pl.LightningDataModule):
         self.delete_columns = ["id"]
         self.text_columns = ["sentence_1", "sentence_2"]
 
-    def tokenizing(self, dataframe):
+    def tokenizing(self, dataframe: pd.DataFrame):
         data = []
         for idx, item in tqdm(
             dataframe.iterrows(), desc="tokenizing", total=len(dataframe)
@@ -74,7 +74,7 @@ class DataLoader(pl.LightningDataModule):
             data.append(outputs["input_ids"])
         return data
 
-    def preprocessing(self, data):
+    def preprocessing(self, data:pd.DataFrame):
         # 안쓰는 컬럼을 삭제합니다.
         data = data.drop(columns=self.delete_columns)
 

@@ -6,23 +6,38 @@ import torch
 from dataloader.dataloader import DataLoader
 from model.model import Model
 from trainer.trainer import Trainer
+import functools
+
+
+def rsetattr(obj, attr, val):
+    """
+    recursion을 이용하여,
+    .형태로 구조화되어있는 값 수정하기."""
+    pre, _, post = attr.rpartition(".")
+    return setattr(rgetattr(obj, pre) if pre else obj, post, val)
+
+
+def rgetattr(obj, attr, *args):
+    def _getattr(obj, attr):
+        return getattr(obj, attr, *args)
+
+    return functools.reduce(_getattr, [obj] + attr.split("."))
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, default="", required=True)
-    parser.add_argument("--learning_rate", type=float)
-    parser.add_argument("--weight_decay", type=float)
-    parser.add_argument("--max_epoch", type=int)
 
-    args, _ = parser.parse_known_args()
+    args, options = parser.parse_known_args()
     cfg = OmegaConf.load(f"./config/{args.config}.yaml")
-    for arg_name, value in vars(args).items():
-        if arg_name == "learning_rate":
-            cfg.train.learning_rate = value
-        elif arg_name == "weight_decay":
-            cfg.optimizer.weight_decay = value
-        elif arg_name == "max_epoch":
-            cfg.optimizer.max_epoch = value
+    for option in options:
+        arg_name, value = option.split("=")
+        try:  # value가 int인지, float인지, string인지 체크
+            value = int(value) if float(value) == int(float(value)) else float(value)
+        except:
+            pass
+        # options에 추가로 적용한 args를 적용.
+        rsetattr(cfg, arg_name, value)
 
     exp_name = "_".join(
         map(

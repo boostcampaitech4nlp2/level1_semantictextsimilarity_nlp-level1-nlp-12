@@ -4,11 +4,11 @@ metric:
   goal: maximize
   name: test_pearson
 parameters:
-  learning_rate:
+  train.learning_rate:
     values: [0.00001, 0.00002, 0.00003]
-  weight_decay:
+  optimizer.args.weight_decay:
     values: [0.001, 0.002, 0.003]
-  max_epoch:
+  train.max_epoch:
     values: [1, 2, 3]
 command:
   - ${env}
@@ -16,4 +16,4 @@ command:
   - ${program}
   - "--config"
   - base_config
-  - ${args}
+  - ${args_no_hyphens}
