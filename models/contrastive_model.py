@@ -79,19 +79,19 @@ class ContrastiveModel(pl.LightningModule):
         )
         self.loss_func = TripletLoss(margin=2)
 
-    def forward(self, input_ids, attention_mask, token_type_ids):
+    def forward(self, input_ids, attention_mask):
         print("😡😡😡Checking😡😡😡" )
         # 😡😡😡 여기 아래부터 문제 😡😡😡
-        logits = self.model(input_ids, attention_mask, token_type_ids)
+        logits = self.model(input_ids, attention_mask)
         print(logits)
 
         return logits
 
     def training_step(self, batch):
-        main_input_ids, main_attention_mask, main_token_type_ids, pos_input_ids, pos_attention_mask, pos_token_type_ids, neg_input_ids, neg_attention_mask, neg_token_type_ids, = batch
-        main_logits = self(main_input_ids, main_attention_mask, main_token_type_ids) ##
-        pos_logits = self(pos_input_ids, pos_attention_mask, pos_token_type_ids)
-        neg_logits = self(neg_input_ids, neg_attention_mask, neg_token_type_ids)
+        main_input_ids, main_attention_mask, pos_input_ids, pos_attention_mask, neg_input_ids, neg_attention_mask = batch
+        main_logits = self(main_input_ids, main_attention_mask) 
+        pos_logits = self(pos_input_ids, pos_attention_mask)
+        neg_logits = self(neg_input_ids, neg_attention_mask)
 
         loss = self.loss_func(main_logits, pos_logits, neg_logits)
 

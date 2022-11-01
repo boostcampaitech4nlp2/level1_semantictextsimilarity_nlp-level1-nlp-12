@@ -150,13 +150,10 @@ class ContrastiveDataset(torch.utils.data.Dataset):
         return (
             torch.tensor(self.inputs[idx]["main_input_ids"]),
             torch.tensor(self.inputs[idx]["main_attention_mask"]),
-            torch.tensor(self.inputs[idx]["main_token_type_ids"]),
             torch.tensor(self.inputs[idx]["pos_input_ids"]),
             torch.tensor(self.inputs[idx]["pos_attention_mask"]),
-            torch.tensor(self.inputs[idx]["pos_token_type_ids"]),
             torch.tensor(self.inputs[idx]["neg_input_ids"]),
             torch.tensor(self.inputs[idx]["neg_attention_mask"]),
-            torch.tensor(self.inputs[idx]["neg_token_type_ids"]),
         )
 
     def __len__(self):
@@ -207,15 +204,12 @@ class ContrastiveDataLoader(pl.LightningDataModule):
             )
 
             temp["main_input_ids"] = main_tokenized["input_ids"]
-            temp["main_token_type_ids"] = main_tokenized["token_type_ids"]
             temp["main_attention_mask"] = main_tokenized["attention_mask"]
 
             temp["pos_input_ids"] = pos_tokenized["input_ids"]
-            temp["pos_token_type_ids"] = pos_tokenized["token_type_ids"]
             temp["pos_attention_mask"] = pos_tokenized["attention_mask"]
 
             temp["neg_input_ids"] = neg_tokenized["input_ids"]
-            temp["neg_token_type_ids"] = neg_tokenized["token_type_ids"]
             temp["neg_attention_mask"] = neg_tokenized["attention_mask"]
 
             data.append(temp)
