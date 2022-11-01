@@ -31,9 +31,10 @@ def main(config_parser):
     ########### more info ##############
     # checkpoint: https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.callbacks.ModelCheckpoint.html
     # wandb : https://docs.wandb.ai/guides/integrations/lightning
-    earlystop_callback = EarlyStopping(monitor="val_loss")
+    callback_monitor = configs.pop("callback_monitor", "val_loss")
+    earlystop_callback = EarlyStopping(monitor=callback_monitor, patience=5)
     checkpoint_callback = ModelCheckpoint(
-                monitor='val_loss',
+                monitor=callback_monitor,
                 mode='min',
                 save_top_k=2
             )

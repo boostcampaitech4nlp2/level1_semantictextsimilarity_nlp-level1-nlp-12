@@ -31,6 +31,7 @@
         "test_path": "data/dev.csv",
         "predict_path": "data/test.csv"
     },
+    "callback_monitor":"val_pearson",
     "wandb": {
         "owner": "wjl",
         "project": "nlp12/sts"
