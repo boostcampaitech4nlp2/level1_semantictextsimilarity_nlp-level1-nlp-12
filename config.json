@@ -1,7 +1,7 @@
 {
     "name": "STS",
     "accelerator": "cuda",
-    "checkpoint": "sentence-transformers/distiluse-base-multilingual-cased-v1",
+    "checkpoint": "jhgan/ko-sbert-sts",
     "model": "SentTransformer",
     "model_args":{
         "architecture": "AutoModel",
@@ -31,7 +31,7 @@
         "test_path": "data/dev.csv",
         "predict_path": "data/test.csv"
     },
-    "callback_monitor":"val_pearson",
+    "callback_monitor":"val_loss",
     "wandb": {
         "owner": "wjl",
         "project": "nlp12/sts"

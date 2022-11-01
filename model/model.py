@@ -98,6 +98,7 @@ class SentTransformer(BaseModel):
         score = self.metric(cosine_scores, targets)
         self.log("val_loss", loss)
         self.log("val_pearson", score)
+        print(f'================batch_idx: {batch_idx} score  {score} ===============')
 
         return loss
 

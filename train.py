@@ -42,6 +42,9 @@ def main(config_parser):
     wandb_name = f"wjl-{configs['optimizer']}-{configs['batch_size']}-{configs['lr']}"
     wandb_project = "sts"
     wandb.init(name=wandb_name, project=wandb_project)
+    wandb.config.update({
+        "callback_monitor":callback_monitor
+    })
     wandb_logger = WandbLogger(log_model='all')
 
     # build trainer, then print to console
