@@ -43,7 +43,8 @@ class CustomElectraForSequenceClassification(ElectraPreTrainedModel):
         return_dict = (
             return_dict if return_dict is not None else self.config.use_return_dict
         )
-        # 여기 아래서부터 문제 ##
+        # 여기 아래서부터 문제 #
+        ## self.electra → past_key_values_length ?? ##
         print("🤢🤢")
         discriminator_hidden_states = self.electra(
             input_ids,
@@ -69,6 +70,7 @@ class ContrastiveModel(pl.LightningModule):
         
         self.config = config
         self.model_name = config.model.name
+
         self.model_config = AutoConfig.from_pretrained(self.model_name)
         self.lr = config.train.learning_rate
 
@@ -77,19 +79,19 @@ class ContrastiveModel(pl.LightningModule):
         )
         self.loss_func = TripletLoss(margin=2)
 
-    def forward(self, main_input_ids, pos_input_ids, neg_input_ids):
+    def forward(self, input_ids, attention_mask, token_type_ids):
         print("😡😡😡Checking😡😡😡" )
         # 😡😡😡 여기 아래부터 문제 😡😡😡
-        main_logits = self.model(main_input_ids)
-        print(main_logits)
-        pos_logits = self.model(pos_input_ids)
-        neg_logits = self.model(neg_input_ids)
+        logits = self.model(input_ids, attention_mask, token_type_ids)
+        print(logits)
 
-        return main_logits, pos_logits, neg_logits
+        return logits
 
     def training_step(self, batch):
-        main, pos, neg= batch
-        main_logits, pos_logits, neg_logits = self(main, pos, neg)
+        main_input_ids, main_attention_mask, main_token_type_ids, pos_input_ids, pos_attention_mask, pos_token_type_ids, neg_input_ids, neg_attention_mask, neg_token_type_ids, = batch
+        main_logits = self(main_input_ids, main_attention_mask, main_token_type_ids) ##
+        pos_logits = self(pos_input_ids, pos_attention_mask, pos_token_type_ids)
+        neg_logits = self(neg_input_ids, neg_attention_mask, neg_token_type_ids)
 
         loss = self.loss_func(main_logits, pos_logits, neg_logits)
 
