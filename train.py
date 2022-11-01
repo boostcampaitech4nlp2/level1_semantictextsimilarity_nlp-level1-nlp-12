@@ -45,6 +45,7 @@ def main(config):
     wandb_logger = WandbLogger(name=exp_name, project=config.wandb.project)
 
     print("⚡ get dataloader")
+    '''
     dataloader = DataLoader(
         config.model.name,
         config.train.batch_size,
@@ -53,6 +54,22 @@ def main(config):
         config.path.dev_path,
         config.path.test_path,
         config.path.predict_path,
+    )
+    '''
+
+    # Kfold
+    dataloader = DataLoader( 
+        config.model.name,
+        config.train.batch_size,
+        config.data.shuffle,
+        config.path.train_path,
+        config.path.dev_path,
+        config.path.test_path,
+        config.path.predict_path,
+        config.train.bce,
+        config.train.k,
+        config.train.split_seed,
+        config.train.num_splits
     )
 
     print("⚡ get model")

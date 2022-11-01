@@ -23,8 +23,12 @@ train:
   seed: 42
   gpus: 1
   batch_size: 16
-  max_epoch: 2
+  max_epoch: 30
   learning_rate: 1e-5
+  bce: True
+  k: 1
+  split_seed: 12345
+  num_splits: 10
 
 optimizer: AdamW
 
