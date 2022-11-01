@@ -8,7 +8,6 @@ from transformers.models.electra import ElectraModel, ElectraPreTrainedModel
 import pytorch_lightning as pl
 
 from models.optimizer import get_optimizer, get_scheduler
-from models.loss_function import get_loss_func, TripletLoss
 
 
 class CustomElectraForSequenceClassification(ElectraPreTrainedModel):
@@ -43,21 +42,19 @@ class CustomElectraForSequenceClassification(ElectraPreTrainedModel):
         return_dict = (
             return_dict if return_dict is not None else self.config.use_return_dict
         )
-        # 여기 아래서부터 문제 #
-        ## self.electra → past_key_values_length ?? ##
-        print("🤢🤢")
+
         discriminator_hidden_states = self.electra(
-            input_ids,
-            attention_mask,
-            token_type_ids,
-            position_ids,
-            head_mask,
-            inputs_embeds,
-            output_attentions,
-            output_hidden_states,
-            return_dict,
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            token_type_ids=token_type_ids,
+            position_ids=position_ids,
+            head_mask=head_mask,
+            inputs_embeds=inputs_embeds,
+            output_attentions=output_attentions,
+            output_hidden_states=output_hidden_states,
+            return_dict=return_dict,
         )
-        print("🤢🤢🤢")
+
         sequence_output = discriminator_hidden_states[0]
 
         return sequence_output
@@ -66,7 +63,7 @@ class CustomElectraForSequenceClassification(ElectraPreTrainedModel):
 class ContrastiveModel(pl.LightningModule):
     def __init__(self, config):
         super().__init__()
-        # self.save_hyperparameters()
+        self.save_hyperparameters()
         
         self.config = config
         self.model_name = config.model.name
@@ -77,23 +74,30 @@ class ContrastiveModel(pl.LightningModule):
         self.model = CustomElectraForSequenceClassification.from_pretrained(
             pretrained_model_name_or_path=self.model_name, config=self.model_config
         )
-        self.loss_func = TripletLoss(margin=2)
+        self.loss_func = nn.TripletMarginLoss(margin=1.0, p=2)
 
     def forward(self, input_ids, attention_mask):
-        print("😡😡😡Checking😡😡😡" )
-        # 😡😡😡 여기 아래부터 문제 😡😡😡
         logits = self.model(input_ids, attention_mask)
-        print(logits)
-
         return logits
 
-    def training_step(self, batch):
+    def training_step(self, batch, batch_idx):
         main_input_ids, main_attention_mask, pos_input_ids, pos_attention_mask, neg_input_ids, neg_attention_mask = batch
         main_logits = self(main_input_ids, main_attention_mask) 
         pos_logits = self(pos_input_ids, pos_attention_mask)
         neg_logits = self(neg_input_ids, neg_attention_mask)
 
         loss = self.loss_func(main_logits, pos_logits, neg_logits)
+        self.log("train_triplet_loss", loss)
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        main_input_ids, main_attention_mask, pos_input_ids, pos_attention_mask, neg_input_ids, neg_attention_mask = batch
+        main_logits = self(main_input_ids, main_attention_mask) 
+        pos_logits = self(pos_input_ids, pos_attention_mask)
+        neg_logits = self(neg_input_ids, neg_attention_mask)
+
+        loss = self.loss_func(main_logits, pos_logits, neg_logits)
+        self.log("val_triplet_loss", loss)
 
         return loss
     

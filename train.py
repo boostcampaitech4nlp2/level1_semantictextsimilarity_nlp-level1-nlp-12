@@ -65,7 +65,7 @@ def main(config):
     trainer.fit(model=model, datamodule=dataloader)
     trainer.test(model=model, datamodule=dataloader)
 
-    torch.save(model, "model.pt")
+    # torch.save(model, "model.pt")
     torch.save(model, f"{config.model.saved_name}.pt")
 
 

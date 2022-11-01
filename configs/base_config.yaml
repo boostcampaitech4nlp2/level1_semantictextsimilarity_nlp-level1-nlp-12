@@ -2,10 +2,10 @@
 wandb:
   project: sts
   name: kbh
-  info: AEDA # 기타 적용사항
+  info: Contrastive # 기타 적용사항
 
 path:
-  train_path: ./data/aug_data/train.AEDA.csv
+  train_path: ./data/raw_data/train.csv
   dev_path: ./data/raw_data/dev.csv
   test_path: ./data/raw_data/dev.csv
   predict_path: ./data/raw_data/test.csv
@@ -15,15 +15,15 @@ data:
 
 model:
   name: beomi/KcELECTRA-base # klue/roberta-small | beomi/KcELECTRA-base | klue/bert-base | xlm-roberta-base | jhgan/ko-sroberta-sts
-  saved_name: baseline_1 # 저장할 모델 이름
+  saved_name: contrastive_trained # 저장할 모델 이름
 
 loss_func: L1Loss # L1Loss | ...
 
 train:
   seed: 42
   gpus: 1
-  batch_size: 16
-  max_epoch: 2
+  batch_size: 8
+  max_epoch: 30
   learning_rate: 1e-5
 
 optimizer: AdamW

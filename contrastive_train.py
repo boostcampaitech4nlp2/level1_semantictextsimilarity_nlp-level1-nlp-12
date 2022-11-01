@@ -42,7 +42,7 @@ def main(config):
             ],
         )
     )
-    # wandb_logger = WandbLogger(name=exp_name, project=config.wandb.project)
+    wandb_logger = WandbLogger(name=exp_name, project=config.wandb.project)
 
     print("⚡ get dataloader")
     dataloader = ContrastiveDataLoader(
@@ -57,13 +57,12 @@ def main(config):
     model = ContrastiveModel(config)
 
     print("⚡ get trainer")
-    trainer = ContrastiveTrainer(config)
+    trainer = ContrastiveTrainer(config, wandb_logger)
 
     print("⚡ Training Start ⚡")
     trainer.fit(model=model, datamodule=dataloader)
 
-    # torch.save(model, "model.pt")
-    # torch.save(model, f"{config.model.saved_name}.pt")
+    torch.save(model, f"{config.model.saved_name}.pt")
 
 
 if __name__ == "__main__":
