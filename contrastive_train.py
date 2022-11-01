@@ -5,9 +5,14 @@ import numpy as np
 import torch
 
 import argparse
-from models.contrastive_model import ContrastiveModel
-from dataloader.dataloader import ContrastiveDataLoader
-from trainer.trainer import ContrastiveTrainer
+from models.contrastive_model import (
+    ContrastiveElectraForSequenceClassification,
+    ContrastiveLearnedElectraModel,
+    ContrastiveModel,
+)
+from dataloader.dataloader import ContrastiveDataLoader, ElectraDataLoader
+from trainer.trainer import ContrastiveTrainer, Trainer
+from models.model import Model
 
 from omegaconf import OmegaConf
 import pytorch_lightning as pl
@@ -44,7 +49,7 @@ def main(config):
     )
     wandb_logger = WandbLogger(name=exp_name, project=config.wandb.project)
 
-    print("⚡ get dataloader")
+    print("\033[31m" + "⚡ get Contrastive dataloader" + "\033[0m")
     dataloader = ContrastiveDataLoader(
         config.model.name,
         config.train.batch_size,
@@ -53,16 +58,38 @@ def main(config):
         config.path.dev_path,
     )
 
-    print("⚡ get model")
+    print("\033[31m" + "⚡ Contrastive get model" + "\033[0m")
     model = ContrastiveModel(config)
 
-    print("⚡ get trainer")
+    print("\033[31m" + "⚡ get Contrastive trainer" + "\033[0m")
     trainer = ContrastiveTrainer(config, wandb_logger)
 
-    print("⚡ Training Start ⚡")
+    print("\033[31m" + "⚡ Contrastive Learning Start ⚡" + "\033[0m")
     trainer.fit(model=model, datamodule=dataloader)
 
-    torch.save(model, f"{config.model.saved_name}.pt")
+    torch.save(model, "contrastive_trained.pt")
+
+    ### 2차 학습 ###
+    print("\033[32m" + "⚡ get Electra dataloader" + "\033[0m")
+    dataloader = ElectraDataLoader(
+        config.model.name,
+        config.train.batch_size,
+        config.data.shuffle,
+        config.path.train_path,
+        config.path.dev_path,
+        config.path.test_path,
+        config.path.predict_path,
+    )
+    print("\033[32m" + "⚡ get model" + "\033[0m")
+    model = ContrastiveLearnedElectraModel(config)
+
+    print("\033[32m" + "⚡ get trainer" + "\033[0m")
+    trainer = Trainer(config, wandb_logger)
+
+    print("\033[32m" + "⚡ Training Start ⚡" + "\033[0m")
+    trainer.fit(model=model, datamodule=dataloader)
+
+    torch.save(model, "contrastive_trained_2.pt")
 
 
 if __name__ == "__main__":

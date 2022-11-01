@@ -58,7 +58,6 @@ def main(config):
     print("⚡ get model")
     model = Model(config)
 
-    print("⚡ get trainer")
     trainer = Trainer(config, wandb_logger)
 
     print("⚡ Training Start ⚡")

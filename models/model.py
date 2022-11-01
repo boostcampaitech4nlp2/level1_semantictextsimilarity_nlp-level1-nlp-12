@@ -2,6 +2,7 @@ import pytorch_lightning as pl
 import torch
 import torchmetrics
 from transformers import AutoModelForSequenceClassification
+from models.contrastive_model import ContrastiveElectraForSequenceClassification
 
 from models.optimizer import get_optimizer, get_scheduler
 from models.loss_function import get_loss_func
@@ -16,9 +17,10 @@ class Model(pl.LightningModule):
         self.model_name = config.model.name
         self.lr = config.train.learning_rate
 
+
         self.model = AutoModelForSequenceClassification.from_pretrained(
-            pretrained_model_name_or_path=self.model_name, num_labels=1
-        )
+                pretrained_model_name_or_path=self.model_name, num_labels=1
+            )
 
         self.loss_func = get_loss_func(config)
 

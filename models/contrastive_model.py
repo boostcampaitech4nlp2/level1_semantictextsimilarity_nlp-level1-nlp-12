@@ -1,16 +1,19 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torchmetrics
+
 from transformers import AutoConfig
 from transformers.modeling_outputs import SequenceClassifierOutput
 from transformers.models.electra import ElectraModel, ElectraPreTrainedModel
 
 import pytorch_lightning as pl
+from models.loss_function import get_loss_func
 
 from models.optimizer import get_optimizer, get_scheduler
 
 
-class CustomElectraForSequenceClassification(ElectraPreTrainedModel):
+class CustomElectra(ElectraPreTrainedModel):
     def __init__(self, config):
         super().__init__(config)
         self.config = config
@@ -64,14 +67,14 @@ class ContrastiveModel(pl.LightningModule):
     def __init__(self, config):
         super().__init__()
         self.save_hyperparameters()
-        
+
         self.config = config
         self.model_name = config.model.name
 
         self.model_config = AutoConfig.from_pretrained(self.model_name)
         self.lr = config.train.learning_rate
 
-        self.model = CustomElectraForSequenceClassification.from_pretrained(
+        self.model = CustomElectra.from_pretrained(
             pretrained_model_name_or_path=self.model_name, config=self.model_config
         )
         self.loss_func = nn.TripletMarginLoss(margin=1.0, p=2)
@@ -81,8 +84,15 @@ class ContrastiveModel(pl.LightningModule):
         return logits
 
     def training_step(self, batch, batch_idx):
-        main_input_ids, main_attention_mask, pos_input_ids, pos_attention_mask, neg_input_ids, neg_attention_mask = batch
-        main_logits = self(main_input_ids, main_attention_mask) 
+        (
+            main_input_ids,
+            main_attention_mask,
+            pos_input_ids,
+            pos_attention_mask,
+            neg_input_ids,
+            neg_attention_mask,
+        ) = batch
+        main_logits = self(main_input_ids, main_attention_mask)
         pos_logits = self(pos_input_ids, pos_attention_mask)
         neg_logits = self(neg_input_ids, neg_attention_mask)
 
@@ -91,8 +101,15 @@ class ContrastiveModel(pl.LightningModule):
         return loss
 
     def validation_step(self, batch, batch_idx):
-        main_input_ids, main_attention_mask, pos_input_ids, pos_attention_mask, neg_input_ids, neg_attention_mask = batch
-        main_logits = self(main_input_ids, main_attention_mask) 
+        (
+            main_input_ids,
+            main_attention_mask,
+            pos_input_ids,
+            pos_attention_mask,
+            neg_input_ids,
+            neg_attention_mask,
+        ) = batch
+        main_logits = self(main_input_ids, main_attention_mask)
         pos_logits = self(pos_input_ids, pos_attention_mask)
         neg_logits = self(neg_input_ids, neg_attention_mask)
 
@@ -100,10 +117,117 @@ class ContrastiveModel(pl.LightningModule):
         self.log("val_triplet_loss", loss)
 
         return loss
-    
+
     def configure_optimizers(self):
         optimizer = get_optimizer(self.parameters(), self.config)
         scheduler = get_scheduler(optimizer, self.config)
 
         return [optimizer], [scheduler]
-        
+
+
+class ElectraClassificationHead(nn.Module):
+    """Head for sentence-level classification tasks."""
+
+    def __init__(self, config):
+        super().__init__()
+        self.dense = nn.Linear(config.hidden_size, config.hidden_size)
+        classifier_dropout = (
+            config.classifier_dropout
+            if config.classifier_dropout is not None
+            else config.hidden_dropout_prob
+        )
+        self.dropout = nn.Dropout(classifier_dropout)
+        self.out_proj = nn.Linear(config.hidden_size, 1)
+        self.gelu = nn.GELU()
+
+    def forward(self, features, **kwargs):
+        x = features[:, 0, :]  # take <s> token (equiv. to [CLS])
+        x = self.dropout(x)
+        x = self.dense(x)
+        x = self.gelu(
+            x
+        )  # although BERT uses tanh here, it seems Electra authors used gelu here
+        x = self.dropout(x)
+        x = self.out_proj(x)
+        return x
+
+
+class ContrastiveElectraForSequenceClassification(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+
+        self.config = config
+        self.model_name = config.model.name
+        self.model_config = AutoConfig.from_pretrained(self.model_name)
+
+        self.electra_model = torch.load("contrastive_trained.pt")
+        self.classifier = ElectraClassificationHead(self.model_config)
+
+        self.loss_func = get_loss_func(config)
+
+    def forward(self, input_ids, attention_mask):
+        sequence_output = self.electra_model(input_ids, attention_mask)
+        logits = self.classifier(sequence_output)
+
+        return logits
+
+
+class ContrastiveLearnedElectraModel(pl.LightningModule):
+    def __init__(self, config):
+        super().__init__()
+        self.save_hyperparameters()
+
+        self.config = config
+        self.model_name = config.model.name
+        self.lr = config.train.learning_rate
+
+        self.model = ContrastiveElectraForSequenceClassification(config)
+
+        self.loss_func = get_loss_func(config)
+
+    def forward(self, input_ids, attention_mask):
+        logits = self.model(input_ids, attention_mask)
+        return logits
+
+    def training_step(self, batch, batch_idx):
+        input_ids, attention_mask, y = batch
+        logits = self(input_ids, attention_mask)
+
+        loss = self.loss_func(logits, y.float())
+        self.log("train_loss", loss)
+
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        input_ids, attention_mask, y = batch
+        logits = self(input_ids, attention_mask)
+
+        loss = self.loss_func(logits, y.float())
+        self.log("val_loss", loss)
+        self.log(
+            "val_pearson",
+            torchmetrics.functional.pearson_corrcoef(logits.squeeze(), y.squeeze()),
+        )
+
+        return loss
+
+    def test_step(self, batch, batch_idx):
+        input_ids, attention_mask, y = batch
+        logits = self(input_ids, attention_mask)
+
+        self.log(
+            "test_pearson",
+            torchmetrics.functional.pearson_corrcoef(logits.squeeze(), y.squeeze()),
+        )
+
+    def predict_step(self, batch, batch_idx):
+        input_ids, attention_mask = batch
+        logits = self(input_ids, attention_mask)
+
+        return logits.squeeze()
+
+    def configure_optimizers(self):
+        optimizer = get_optimizer(self.parameters(), self.config)
+        scheduler = get_scheduler(optimizer, self.config)
+
+        return [optimizer], [scheduler]

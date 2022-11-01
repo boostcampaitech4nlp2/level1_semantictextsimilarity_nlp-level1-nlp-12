@@ -5,7 +5,7 @@ wandb:
   info: Contrastive # 기타 적용사항
 
 path:
-  train_path: ./data/raw_data/train.csv
+  train_path: ./data/aug_data/train.AEDA.csv
   dev_path: ./data/raw_data/dev.csv
   test_path: ./data/raw_data/dev.csv
   predict_path: ./data/raw_data/test.csv
