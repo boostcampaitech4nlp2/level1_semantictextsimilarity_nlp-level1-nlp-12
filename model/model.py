@@ -8,7 +8,7 @@ from sentence_transformers import SentenceTransformer, models, losses
 from sentence_transformers.readers import InputExample
 from sklearn.metrics.pairwise import paired_cosine_distances
 
-class Base(BaseModel):
+class BaselineModel(BaseModel):
     '''
     baseline 그대로의 모델
     '''
@@ -26,6 +26,7 @@ class Base(BaseModel):
 class SentTransformer(BaseModel):
     def __init__(self, **configs):
         '''
+        jhgan/ko-sbert-sts / AutoModel / SentTransformerDataLoader
         ref: 
             1. https://github.com/UKPLab/sentence-transformers/blob/master/examples/training/sts/training_stsbenchmark.py
             2. https://www.sbert.net/examples/training/sts/README.html#training-data
@@ -33,7 +34,6 @@ class SentTransformer(BaseModel):
         super().__init__(**configs) #"sentence-transformers/distiluse-base-multilingual-cased-v2"
 
         # use `SentenceTransformer` instead of  default huggignface architectures 
-        self.lm = None # override self.lm defined in the parent class
         del self.lm
         lm = models.Transformer(self.checkpoint)
 
@@ -94,87 +94,19 @@ class SentTransformer(BaseModel):
     def validation_step(self, batch, batch_idx):
         cosine_scores = self.forward(batch)
         targets = batch['label'].to(cosine_scores.device) 
-        loss = self.criterion(cosine_scores, targets)
-        score = self.metric(cosine_scores, targets)
-        self.log("val_loss", loss)
-        self.log("val_pearson", score)
-        print(f'================batch_idx: {batch_idx} score  {score} ===============')
 
+        loss = self.criterion(cosine_scores, targets)
+        self.log("val_loss", loss, batch_size=len(batch))
+        self.log("val_pearson", self.metric(cosine_scores, targets))
+    
         return loss
 
     def test_step(self, batch, batch_idx):
         cosine_scores = self.forward(batch)
         targets = batch['label'].to(cosine_scores.device) 
-        score = self.metric(cosine_scores, targets)
-        self.log("test_pearson", score)
+        self.log("test_pearson", self.metric(cosine_scores, targets))
 
     def predict_step(self, batch, batch_idx):
         cosine_scores = self.forward(batch)
 
         return cosine_scores
-
-class Base(BaseModel):
-    '''
-    baseline 그대로의 모델
-    '''
-    def __init__(self, **configs):
-        super().__init__(**configs)
-
-    def forward(self, x):
-        '''
-        Method for task/model-specific forward.
-        '''
-        x = self.lm(x)['logits']
-
-        return x
-
-    def training_step(self, batch, batch_idx):
-        x, y = batch
-        logits = self.forward(x)
-        loss = self.criterion(logits, y.float())
-        self.log("train_loss", loss)
-
-        return loss
-
-    def validation_step(self, batch, batch_idx):
-        x, y = batch
-        logits = self.forward(x)
-        loss = self.criterion(logits, y.float())
-        score = self.metric(logits.squeeze(), y.squeeze())
-        self.log("val_loss", loss)
-        self.log("val_pearson", score)
-
-        return loss
-
-    def test_step(self, batch, batch_idx):
-        x, y = batch
-        logits = self.forward(x)
-        #loss = self.criterion(logits, y.float())
-        score = self.metric(logits.squeeze(), y.squeeze())
-        #self.log("test_loss", loss)
-        self.log("test_pearson", score)
-        #return loss
-
-    def predict_step(self, batch, batch_idx):
-        x = batch
-        logits = self.forward(x)
-
-        return logits.squeeze()
-
-    def configure_optimizers(self):
-        optimizer = getattr(optim, self.optimizer)(
-            self.parameters(),
-            self.lr
-        )
-
-        if self.lr_scheduler:
-            lr_scheduler = getattr(optim.lr_scheduler, self.lr_scheduler)(
-                    optimizer,
-                    **self.lr_scheduler_args
-                    )
-            return {
-                "optimizer": optimizer,
-                "lr_scheduler": lr_scheduler
-            }
-        else:
-            return optimizer

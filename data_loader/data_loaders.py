@@ -2,7 +2,7 @@ from base import BaseDataLoader
 from torch.utils.data import Dataset, DataLoader
 from tqdm.auto import tqdm
 import torch
-from sentence_transformers.readers import InputExample
+
 
 class SentTransformerDataset(Dataset):
     def __init__(self, df):
@@ -90,7 +90,7 @@ class SentTransformerDataLoader(BaseDataLoader):
         ) # collate_fn = self.collate_fn
 
 
-class CustomDataset(Dataset):
+class BaselineDataset(Dataset):
     '''baseline code'''
     def __init__(self, inputs, targets=[]):
         self.inputs = inputs
@@ -106,7 +106,7 @@ class CustomDataset(Dataset):
         return len(self.inputs)
 
     
-class STSDataLoader(BaseDataLoader):
+class BaselineDataloader(BaseDataLoader):
     '''augmented baseline code'''
     def __init__(self, **configs):
         super().__init__(**configs)
@@ -143,11 +143,11 @@ class STSDataLoader(BaseDataLoader):
 
             # read and assign csv files
             train_inputs, train_targets = self._preprocess(self.train_data)
-            self.train_dataset = CustomDataset(train_inputs, train_targets)
+            self.train_dataset = BaselineDataset(train_inputs, train_targets)
 
             if self.val_data is not None:
                 val_inputs, val_targets = self._preprocess(self.val_data)
-                self.val_dataset = CustomDataset(val_inputs, val_targets)
+                self.val_dataset = BaselineDataset(val_inputs, val_targets)
             else:
                 self.train_dataset, self.val_dataset = self._split_validation_set(self.train_dataset)
 
@@ -159,8 +159,8 @@ class STSDataLoader(BaseDataLoader):
             test_inputs, test_targets = self._preprocess(self.test_data)
             predict_inputs, predict_targets = self._preprocess(self.predict_data)
 
-            self.test_dataset = CustomDataset(test_inputs, test_targets)
-            self.predict_dataset = CustomDataset(predict_inputs, predict_targets)
+            self.test_dataset = BaselineDataset(test_inputs, test_targets)
+            self.predict_dataset = BaselineDataset(predict_inputs, predict_targets)
 
     def train_dataloader(self):
         return DataLoader(

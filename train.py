@@ -41,7 +41,7 @@ def main(config_parser):
     
     wandb_name = f"wjl-{configs['optimizer']}-{configs['batch_size']}-{configs['lr']}"
     wandb_project = "sts"
-    wandb.init(name=wandb_name, project=wandb_project)
+    wandb.init(name=wandb_name, project=wandb_project, reinit=True)
     wandb.config.update({
         "callback_monitor":callback_monitor
     })
@@ -58,8 +58,7 @@ def main(config_parser):
         callbacks=[checkpoint_callback, earlystop_callback],
         fast_dev_run=configs.pop('debugging_run', False)
     )
-    logger.info(trainer)
-
+    
     #if configs.pop('resume', None):
     trainer.fit(model=model_module, datamodule=dataloader_module)
     logger.info(f'Best checkpoint saved at {trainer.checkpoint_callback.best_model_path}')
