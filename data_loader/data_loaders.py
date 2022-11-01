@@ -2,11 +2,93 @@ from base import BaseDataLoader
 from torch.utils.data import Dataset, DataLoader
 from tqdm.auto import tqdm
 import torch
-
+from sentence_transformers.readers import InputExample
 
 class SentTransformerDataset(Dataset):
-    def __init__(self, inputs):
-        pass
+    def __init__(self, df):
+        self.df = df
+
+    def __len__(self):
+        return len(self.df)
+
+    def __getitem__(self, idx):
+        return self.df[idx] 
+        
+class SentTransformerDataLoader(BaseDataLoader):
+    
+    def __init__(self, **configs):
+        super().__init__(**configs)
+
+    def _preprocess(self, df):
+        data = []
+        for _, row in df.iterrows():
+            if 'label' in row:
+                #train/val set
+                #normalize score to 0~1
+                label = row['label'] / 5.0
+            else:
+                # predict set
+                # nomial label of -1.0
+                label = -1.0
+
+            # formatting
+            data.append({
+                'texts': [row['sentence_1'], row['sentence_2']],
+                'label': label
+            })
+        return data
+
+    def setup(self, stage='fit'):
+        if stage == 'fit':
+            self.train_data = self._read_data('train') # returns df
+            self.val_data = self._read_data('val') # None if val_path is not given ins config.json
+
+            self.train_data = self._preprocess(self.train_data)
+            self.train_dataset = SentTransformerDataset(self.train_data)
+
+            if self.val_data is not None:
+                self.val_data = self._preprocess(self.val_data)
+                self.val_dataset = SentTransformerDataset(self.val_data)
+            else:
+                self.train_dataset, self.val_dataset = self._split_validation_set(self.train_dataset)
+        else:
+            self.test_data = self._read_data('test')
+            test_inputs = self._preprocess(self.test_data)
+            self.test_dataset = SentTransformerDataset(test_inputs)
+
+            self.predict_data = self._read_data('predict')
+            predict_inputs = self._preprocess(self.predict_data)
+            self.predict_dataset = SentTransformerDataset(predict_inputs)
+
+    def train_dataloader(self):
+        return DataLoader(
+            self.train_dataset,
+            batch_size=self.batch_size, 
+            shuffle=self.shuffle,
+            num_workers=self.num_workers
+        ) # collate_fn = self.collate_fn,
+
+    def val_dataloader(self):
+        return DataLoader(
+            self.val_dataset,
+            batch_size=self.batch_size, 
+            num_workers=self.num_workers
+        ) # collate_fn = self.collate_fn,
+
+    def test_dataloader(self):
+        return DataLoader(
+            self.test_dataset,
+            batch_size=self.batch_size, 
+            num_workers=self.num_workers
+        ) # collate_fn = self.collate_fn,
+        
+    def predict_dataloader(self):
+        return DataLoader(
+            self.predict_dataset,
+            batch_size=self.batch_size, 
+            num_workers=self.num_workers
+        ) # collate_fn = self.collate_fn
+
 
 class CustomDataset(Dataset):
     '''baseline code'''

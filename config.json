@@ -1,14 +1,14 @@
 {
     "name": "STS",
     "accelerator": "cuda",
-    "checkpoint": "klue/roberta-small",
-    "model": "Base",
+    "checkpoint": "sentence-transformers/distiluse-base-multilingual-cased-v1",
+    "model": "SentTransformer",
     "model_args":{
-        "architecture": "AutoModelForSequenceClassification",
+        "architecture": "AutoModel",
         "num_labels": 1
     },
-    "batch_size": 64,
-    "criterion": "l1_loss",
+    "batch_size": 32,
+    "criterion": "mse_loss",
     "optimizer": "AdamW",
     "lr": 1e-5,
     "lr_scheduler": "StepLR",
@@ -16,10 +16,10 @@
 	    "step_size": 100
     },
     "max_epochs": 15,
-    "max_length": 160,
+    "max_length": 128,
     "log_every_n_steps": 1,
     "metric": "pearson",
-    "data_loader": "STSDataLoader",
+    "data_loader": "SentTransformerDataLoader",
     "data_loader_args": {
         "data_dir": "data/",
         "shuffle": true,

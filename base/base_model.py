@@ -18,6 +18,7 @@ class BaseModel(pl.LightningModule):
         self.architecture = model_args.pop('architecture', None)
 
         self.checkpoint = configs['checkpoint']
+        self.batch_size = configs['batch_size']
         self.lr = configs.pop('lr', 1e-5)
         self.lr_scheduler = configs.pop('lr_scheduler', None)
         if self.lr_scheduler is not None:
@@ -112,5 +113,5 @@ class BaseModel(pl.LightningModule):
         Model prints with number of trainable parameters
         """
         model_parameters = filter(lambda p: p.requires_grad, self.parameters())
-        params = sum([p.numel() for p in model_parameters]) 
+        params = sum([p.numel() for p in model_parameters if p is not None]) 
         return super().__str__() + '\nTrainable parameters: {}'.format(params)
