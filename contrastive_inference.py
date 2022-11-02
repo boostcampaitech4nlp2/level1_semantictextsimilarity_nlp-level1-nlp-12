@@ -8,6 +8,7 @@ import torch
 import argparse
 from omegaconf import OmegaConf
 from dataloader.dataloader import ElectraDataLoader
+from models.contrastive_model import ContrastiveLearnedElectraModel
 
 import pytorch_lightning as pl
 
@@ -38,7 +39,10 @@ def main(config):
     )
 
     print("⚡ get model")
-    model = torch.load("contrastive_trained_2.pt")
+    # model = torch.load("contrastive_trained_2.pt")
+    model = ContrastiveLearnedElectraModel.load_from_checkpoint(
+        config.model.model_ckpt_path
+    )
 
     print("⚡ get trainer")
     trainer = pl.Trainer(

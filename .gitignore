@@ -10,6 +10,8 @@ lightning_logs
 
 # model
 *.pt
+*.ckpt
+checkpoints
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -116,4 +118,3 @@ ENV/
 # editor, os cache directory
 .vscode/
 .idea/
-__MACOSX/

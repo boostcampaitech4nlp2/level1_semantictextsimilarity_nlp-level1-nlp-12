@@ -161,6 +161,7 @@ class ContrastiveElectraForSequenceClassification(nn.Module):
         self.model_config = AutoConfig.from_pretrained(self.model_name)
 
         self.electra_model = torch.load("contrastive_trained.pt")
+        # self.electra_model = CustomElectra.load_from_checkpoint(config.model.contrastive_ckpt_path)
         self.classifier = ElectraClassificationHead(self.model_config)
 
         self.loss_func = get_loss_func(config)

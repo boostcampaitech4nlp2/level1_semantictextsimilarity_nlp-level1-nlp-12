@@ -8,6 +8,7 @@ import torch
 import argparse
 from omegaconf import OmegaConf
 from dataloader.dataloader import DataLoader
+from models.model import Model
 
 import pytorch_lightning as pl
 
@@ -26,7 +27,7 @@ def seed_everything(seed):
 
 
 def main(config):
-    print("⚡ get dataloader")
+    print("\033[32m" + "⚡ get dataloader" + "\033[0m")
     dataloader = DataLoader(
         config.model.name,
         config.train.batch_size,
@@ -37,10 +38,11 @@ def main(config):
         config.path.predict_path,
     )
 
-    print("⚡ get model")
-    model = torch.load(f"{config.model.saved_name}.pt")
+    print("\033[32m" + "⚡ get model" + "\033[0m")
+    # model = torch.load(f"{config.model.saved_name}.pt")
+    model = Model.load_from_checkpoint(config.model.model_ckpt_path)
 
-    print("⚡ get trainer")
+    print("\033[32m" + "⚡ get trainer" + "\033[0m")
     trainer = pl.Trainer(
         accelerator="gpu",
         devices=1,
