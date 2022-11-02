@@ -82,8 +82,12 @@ def main(config):
     trainer.fit(model=model, datamodule=dataloader)
     trainer.test(model=model, datamodule=dataloader)
 
+    # finding best model
+    #logger.info(f'Best checkpoint saved at {trainer.checkpoint_callback.best_model_path}')
+
     torch.save(model, "model.pt")
-    torch.save(model, f"{config.model.saved_name}.pt")
+    torch.save(model, f"{trainer.checkpoint_callback.best_model_path}.pt")
+    #torch.save(model, f"{config.model.saved_name}.pt")
 
 
 if __name__ == "__main__":

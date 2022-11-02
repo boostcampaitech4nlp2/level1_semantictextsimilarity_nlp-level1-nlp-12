@@ -1,5 +1,5 @@
 import pytorch_lightning as pl
-from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 
 
 class Trainer(pl.Trainer):
@@ -7,6 +7,13 @@ class Trainer(pl.Trainer):
 
         early_stop_callback = EarlyStopping(
             monitor="val_loss", min_delta=0.00, patience=3, verbose=False, mode="min"
+        )
+        
+        # finding best model
+        checkpoint_callback = ModelCheckpoint(
+                monitor= "val_loss",
+                mode='min',
+                save_top_k=2
         )
 
         super(Trainer, self).__init__(

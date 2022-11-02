@@ -256,6 +256,7 @@ class DataLoader(pl.LightningDataModule):
             # 데이터 셋 num_splits 번 fold
             kf = KFold(n_splits=self.num_splits, shuffle=self.shuffle, random_state=self.split_seed)
             all_splits = [k for k in kf.split(total_dataset)]
+            # train + dev
 
             # k번째 fold 된 데이터셋의 index 선택
             train_indexes, val_indexes = all_splits[self.k]

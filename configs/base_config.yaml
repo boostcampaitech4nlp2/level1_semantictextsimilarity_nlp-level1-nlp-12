@@ -2,10 +2,10 @@
 wandb:
   project: sts
   name: jalee
-  info: AEDA_ovelap_special_token # 기타 적용사항
+  info: AEDA_k-fold_special_token # 기타 적용사항
 
 path:
-  train_path: ./data/aug_data/train_auged.csv
+  train_path: ./data/raw_data/train.csv #./data/aug_data/train_auged.csv
   dev_path: ./data/raw_data/dev.csv
   test_path: ./data/raw_data/dev.csv
   predict_path: ./data/raw_data/test.csv
@@ -23,8 +23,8 @@ train:
   seed: 42
   gpus: 1
   batch_size: 16
-  max_epoch: 30
-  learning_rate: 1e-5
+  max_epoch: 2
+  learning_rate: 1.0e-05
   bce: True
   k: 1
   split_seed: 12345
@@ -33,6 +33,8 @@ train:
 optimizer: AdamW
 
 scheduler: StepLR
+
+callback_monitor: val_loss
 
 
 
