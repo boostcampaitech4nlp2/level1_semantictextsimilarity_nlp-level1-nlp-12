@@ -11,7 +11,7 @@ class Trainer(pl.Trainer):
 
         checkpoint_callback = ModelCheckpoint(
             dirpath=config.model.saved_checkpoint,
-            filename=config.wandb.info + "--{epoch:02d}--{test_pearson:.3f}",
+            filename=config.wandb.info + "--{epoch:02d}--{val_pearson:.3f}",
             verbose=True,
             save_last=False,
             save_top_k=1,

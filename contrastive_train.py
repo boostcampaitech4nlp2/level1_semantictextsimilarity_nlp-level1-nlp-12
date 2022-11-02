@@ -97,10 +97,10 @@ def main(config):
     ###########################################################################
 
     ###################🥶뒤에서 3개의 layer만 Freezing🥶######################
-    # for name, param in model.named_parameters():
-    #     if name.split(".")[1] == "electra_model":
-    #         if name.split(".")[6] in ["9", "10", "11"]:
-    #             param.requires_grad = False
+    for name, param in model.named_parameters():
+        if name.split(".")[1] == "electra_model":
+            if name.split(".")[6] in ["9", "10", "11"]:
+                param.requires_grad = False
     ###########################################################################
 
     print("\033[32m" + "⚡ get trainer" + "\033[0m")

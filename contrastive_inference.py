@@ -41,7 +41,7 @@ def main(config):
     print("⚡ get model")
     # model = torch.load("contrastive_trained_2.pt")
     model = ContrastiveLearnedElectraModel.load_from_checkpoint(
-        config.model.model_ckpt_path
+        config.model.saved_checkpoint + "/" + config.model.model_ckpt_path
     )
 
     print("⚡ get trainer")

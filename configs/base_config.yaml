@@ -18,8 +18,7 @@ model:
   saved_name: contrastive_trained # ⭐ 저장할 모델 이름
   saved_checkpoint: checkpoints/model # model checkpoint 저장할 폴더 명
   saved_contrastive_checkpoint : checkpoints/contrastive
-  model_ckpt_path:  # ⭐ model inference 시 사용할 ckpt 경로를 입력해주세요
-  contrastive_ckpt_path: # ⭐ contrastive inference 시 사용할 ckpt 경로를 입력해주세요
+  model_ckpt_path:  FreezingAll--epoch=11--test_pearson=0.000.ckpt # ⭐ model inference 시 사용할 ckpt 경로를 입력해주세요
 
 loss_func: L1Loss # L1Loss | ...
 
