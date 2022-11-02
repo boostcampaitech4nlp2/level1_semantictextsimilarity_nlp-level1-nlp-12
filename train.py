@@ -23,15 +23,13 @@ def main(config_parser):
     configs = config_parser.config
     logger.info(configs)
 
-    # setup data_loader and model
+    # DataLoader(Data Module) & Model
     data_module = getattr(module_data, config_parser['data_loader'])(**configs)
     model = getattr(module_model, config_parser['model'])(**configs)
     logger.info(model)
 
-    # custom wandb logger & checkpoint_callback
-    ########### more info ##############
-    # checkpoint: https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.callbacks.ModelCheckpoint.html
-    # wandb : https://docs.wandb.ai/guides/integrations/lightning
+    # Callbacks
+    # checkpoint ref: https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.callbacks.ModelCheckpoint.html
     callback_monitor = configs.pop("callback_monitor", "val_loss")
     earlystop_callback = EarlyStopping(monitor=callback_monitor, patience=5)
     checkpoint_callback = ModelCheckpoint(
@@ -39,7 +37,8 @@ def main(config_parser):
                 mode='min',
                 save_top_k=2
             )
-    
+    # Logger
+    # wandb ref: https://docs.wandb.ai/guides/integrations/lightning
     wandb_name = f"wjl-{configs['optimizer']}-{configs['batch_size']}-{configs['lr']}"
     wandb_project = "sts"
     wandb.init(name=wandb_name, project=wandb_project, reinit=True)
@@ -48,8 +47,8 @@ def main(config_parser):
     })
     wandb_logger = WandbLogger(log_model='all')
 
-    # build trainer, then print to console
-    # https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
+    # Trainer
+    # trainer ref: https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
     trainer = Trainer(
         accelerator=configs.pop('accelerator', 'auto'),
         max_epochs=configs.pop('max_epochs', 10),
@@ -60,21 +59,9 @@ def main(config_parser):
         fast_dev_run=configs.pop('debugging_run', False)
     )
     
-    #if configs.pop('resume', None):
     trainer.fit(model=model, datamodule=data_module)
     logger.info(f'Best checkpoint saved at {trainer.checkpoint_callback.best_model_path}')
     trainer.test(model=model, datamodule=data_module)
-
-    """# Inference
-    predictions = trainer.predict(model=model, datamodule=data_module)
-
-    # 예측된 결과를 형식에 맞게 반올림하여 준비합니다.
-    predictions = list(round(float(i), 1) for i in torch.cat(predictions))
-
-    # output 형식을 불러와서 예측된 결과로 바꿔주고, output.csv로 출력합니다.
-    output = pd.read_csv('./data/sample_submission.csv')
-    output['target'] = predictions
-    output.to_csv('./data/output.csv', index=False)"""
 
 
 if __name__ == '__main__':
