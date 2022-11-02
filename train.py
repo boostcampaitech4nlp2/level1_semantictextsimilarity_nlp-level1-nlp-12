@@ -1,12 +1,15 @@
 from omegaconf import OmegaConf
 from pytorch_lightning.loggers import WandbLogger
-import wandb
 import argparse
 import torch
 from dataloader.dataloader import DataLoader
 from model.model import Model
 from trainer.trainer import Trainer
+import pytorch_lightning as pl
 import functools
+import random
+import os
+import numpy as np
 
 
 def rsetattr(obj, attr, val):
@@ -24,20 +27,20 @@ def rgetattr(obj, attr, *args):
     return functools.reduce(_getattr, [obj] + attr.split("."))
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, default="", required=True)
+def seed_everything(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    os.environ["PYTHONHASHSEED"] = str(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)  # if use multi-GPU
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    pl.seed_everything(seed, workers=True)
 
-    args, options = parser.parse_known_args()
-    cfg = OmegaConf.load(f"./config/{args.config}.yaml")
-    for option in options:
-        arg_name, value = option.split("=")
-        try:  # value가 int인지, float인지, string인지 체크
-            value = int(value) if float(value) == int(float(value)) else float(value)
-        except:
-            pass
-        # options에 추가로 적용한 args를 적용.
-        rsetattr(cfg, arg_name, value)
+
+def main(cfg):
+    seed_everything(cfg.train.seed)
 
     exp_name = "_".join(
         map(
@@ -77,3 +80,20 @@ if __name__ == "__main__":
     trainer.test(model=model, datamodule=dataloader)
 
     torch.save(model, f"{cfg.model.saved_name}.pt")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", type=str, default="", required=True)
+
+    args, options = parser.parse_known_args()
+    cfg = OmegaConf.load(f"./config/{args.config}.yaml")
+    for option in options:
+        arg_name, value = option.split("=")
+        try:  # value가 int인지, float인지, string인지 체크
+            value = int(value) if float(value) == int(float(value)) else float(value)
+        except:
+            pass
+        # options에 추가로 적용한 args를 적용.
+        rsetattr(cfg, arg_name, value)
+    main(cfg)

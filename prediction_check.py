@@ -47,8 +47,8 @@ def main(cfg):
         cfg.data.shuffle,
         cfg.path.train_path,
         cfg.path.dev_path,
-        cfg.path.test_path,
-        cfg.path.predict_path,
+        cfg.path.dev_path,  # 여기도 같이 바꿔주면 된다.
+        cfg.path.dev_path,  # 여기를 바꿔주면 된다.
     )
     model = torch.load(f"{cfg.model.saved_name}.pt")
 
@@ -64,9 +64,21 @@ def main(cfg):
 
     predictions = list(round(float(i), 1) for i in torch.cat(predictions))
 
-    output = pd.read_csv("./data/sample_submission.csv")
-    output["target"] = predictions
-    output.to_csv("./data/output.csv", index=False)
+    # pred
+    wrongs = []
+    for i, pred in enumerate(predictions):
+        input_ids, target = dataloader.test_dataset.__getitem__(i)  # 바꿔줄 것 2
+        wrongs.append(
+            [
+                dataloader.tokenizer.decode(input_ids).replace(" [PAD]", ""),
+                pred,
+                target,
+                abs(pred - target) * 100,
+            ]
+        )
+    wrong_df = pd.DataFrame(wrongs, columns=["text", "pred", "target", "diff"])
+    wrong_df = wrong_df.sort_values("diff", ascending=False)
+    wrong_df.to_csv("./data/wrongs.csv")
 
 
 if __name__ == "__main__":

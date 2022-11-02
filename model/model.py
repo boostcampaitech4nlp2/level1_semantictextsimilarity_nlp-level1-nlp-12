@@ -2,7 +2,7 @@ import pytorch_lightning as pl
 import transformers
 import torch
 import torchmetrics
-from functools import partial
+from loss.loss import FocalLoss
 
 
 class Model(pl.LightningModule):
@@ -18,19 +18,19 @@ class Model(pl.LightningModule):
             pretrained_model_name_or_path=self.model_name, num_labels=1
         )
         # Loss 계산을 위해 사용될 L1Loss를 호출합니다.
-        # 로스함수도 하드코딩 말고 config에 사용 가능하게 수정완료.
         self.loss_func = getattr(torch.nn, config.loss)
         self.optimizer_info = config.optimizer
         self.lr_scheduler_info = config.lr_scheduler
+        # 평가에 사용할 metric을 호출합니다. metric은 torchmetircs에 존재하는 함수를 지원합니다.
         self.metric = getattr(torchmetrics, config.metric)
         self.metric = self.metric()
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor):
         x = self.plm(x)["logits"]
 
         return x
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch, batch_idx: int):
         x, y = batch
         logits = self(x)
         loss = self.loss_func()
@@ -39,7 +39,7 @@ class Model(pl.LightningModule):
 
         return loss
 
-    def validation_step(self, batch, batch_idx):
+    def validation_step(self, batch, batch_idx: int):
         x, y = batch
         logits = self(x)
         loss = self.loss_func()
@@ -54,7 +54,7 @@ class Model(pl.LightningModule):
 
         return loss
 
-    def test_step(self, batch, batch_idx):
+    def test_step(self, batch, batch_idx: int):
         x, y = batch
         logits = self(x)
         self.log(
@@ -62,14 +62,14 @@ class Model(pl.LightningModule):
             self.metric(logits.squeeze(), y.squeeze()),
         )
 
-    def predict_step(self, batch, batch_idx):
+    def predict_step(self, batch, batch_idx: int):
         x = batch
         logits = self(x)
 
         return logits.squeeze()
 
     def configure_optimizers(self):
-        # config.yaml에서 관리하도록 코드 수정.
+        """학습에 사용할 optimizer와 lr_scheduler을 반환합니다."""
         optimizer = getattr(torch.optim, self.optimizer_info.name)
         optimizer = optimizer(
             self.parameters(), lr=self.learning_rate, **self.optimizer_info.args

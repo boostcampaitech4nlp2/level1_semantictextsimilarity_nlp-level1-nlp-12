@@ -12,14 +12,14 @@ data:
   
 metric: PearsonCorrCoef
 model:
-    model_name: jhgan/ko-sroberta-sts
+    model_name: beomi/KcELECTRA-base
     saved_name: base_model
 
 train:
     seed: 42
     gpus: 1
     batch_size: 16
-    max_epoch: 1
+    max_epoch: 30
     learning_rate: 1e-5
     logging_step: 1
 

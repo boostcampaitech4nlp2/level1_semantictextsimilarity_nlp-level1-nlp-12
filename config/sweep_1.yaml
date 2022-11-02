@@ -1,17 +1,21 @@
 program: train.py
-method: grid
+method: random
 metric:
     goal: maximize
     name: test_pearson
 parameters:
     train.learning_rate:
-        values: [0.00001, 0.00002, 0.00003]
+        distribution: uniform
+        min: 0.000001
+        max: 0.00001
     optimizer.args.weight_decay:
-        values: [0.001, 0.002, 0.003]
+        distribution: uniform
+        min: 0.001
+        max: 0.01
     train.max_epoch:
-       values: [1, 2, 3]
+        values: [30]
     lr_scheduler.args.step_size:
-       values: [30, 40, 50]
+        values: [30, 40, 50]
 command:
   - ${env}
   - ${interpreter}
