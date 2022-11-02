@@ -10,6 +10,7 @@ import functools
 import random
 import os
 import numpy as np
+from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 
 
 def rsetattr(obj, attr, val):
@@ -55,8 +56,17 @@ def main(cfg):
             ],
         )
     )
-    wandb_logger = WandbLogger(name=exp_name, project=cfg.project)
-
+    wandb_logger = WandbLogger(name=exp_name, project=cfg.project, log_model="all")
+    check_point_callback = ModelCheckpoint(
+        monitor="val_pearson", dirpath="./checkpoint/", mode="max"
+    )
+    early_stop_callback = EarlyStopping(
+        monitor="val_pearson",
+        min_delta=0.00,
+        patience=3,
+        verbose=True,
+        mode="max",
+    )
     dataloader = DataLoader(
         cfg.model.model_name,
         cfg.train.batch_size,
@@ -74,12 +84,11 @@ def main(cfg):
         max_epochs=cfg.train.max_epoch,
         logger=wandb_logger,
         log_every_n_steps=cfg.train.logging_step,
+        callbacks=[check_point_callback, early_stop_callback],
     )
 
     trainer.fit(model=model, datamodule=dataloader)
     trainer.test(model=model, datamodule=dataloader)
-
-    torch.save(model, f"{cfg.model.saved_name}.pt")
 
 
 if __name__ == "__main__":
