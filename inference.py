@@ -55,8 +55,7 @@ def main(config):
     )
 
     print("⚡ get model")
-    #model = torch.load(f"{config.model.saved_name}.pt")
-    model = torch.load(f"{trainer.checkpoint_callback.best_model_path}.pt")
+    model = torch.load(f"{config.model.saved_name}.pt")
     
     print("⚡ get trainer")
     trainer = pl.Trainer(

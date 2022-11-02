@@ -10,7 +10,7 @@ parameters:
   optimizer:
     values: ['adam', 'sgd']
   dropout:
-    values: [0.1, 0.2, 0.3, 0.4]
+    values: [0.05, 0.1]
   max_epoch:
     values: [10]
   sweep:

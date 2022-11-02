@@ -83,11 +83,11 @@ def main(config):
     trainer.test(model=model, datamodule=dataloader)
 
     # finding best model
-    #logger.info(f'Best checkpoint saved at {trainer.checkpoint_callback.best_model_path}')
+    # logger.info(f'Best checkpoint saved at {trainer.checkpoint_callback.best_model_path}')
+    # log로 path를 받고 torch.load(path)
 
-    torch.save(model, "model.pt")
-    torch.save(model, f"{trainer.checkpoint_callback.best_model_path}.pt")
-    #torch.save(model, f"{config.model.saved_name}.pt")
+    #torch.save(model, "model.pt")
+    torch.save(model, f"{config.model.saved_name}.pt")
 
 
 if __name__ == "__main__":

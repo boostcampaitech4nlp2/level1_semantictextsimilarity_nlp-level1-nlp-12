@@ -1,0 +1,1 @@
+python3 inference.py --config base_config
