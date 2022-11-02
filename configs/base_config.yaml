@@ -2,7 +2,7 @@
 wandb:
   project: sts
   name: kbh
-  info: checkpoint # ⭐
+  info: FreezingAll # ⭐
 
 path:
   train_path: ./data/aug_data/train.AEDA.csv

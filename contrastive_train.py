@@ -83,6 +83,26 @@ def main(config):
     print("\033[32m" + "⚡ get model" + "\033[0m")
     model = ContrastiveLearnedElectraModel(config)
 
+    ###################🥶Classifier 제외 모두 Freezing🥶######################
+    # for name, param in model.named_parameters():
+    #     if name.split(".")[1] != "classifier":
+    #         param.requires_grad = False
+    ###########################################################################
+
+    ###################🥶1~3 layer만 Freezing🥶###############################
+    # for name, param in model.named_parameters():
+    #     if name.split(".")[1] == "electra_model":
+    #         if name.split(".")[6] in ["0", "1", "2"]:
+    #             param.requires_grad = False
+    ###########################################################################
+
+    ###################🥶뒤에서 3개의 layer만 Freezing🥶######################
+    # for name, param in model.named_parameters():
+    #     if name.split(".")[1] == "electra_model":
+    #         if name.split(".")[6] in ["9", "10", "11"]:
+    #             param.requires_grad = False
+    ###########################################################################
+
     print("\033[32m" + "⚡ get trainer" + "\033[0m")
     trainer = Trainer(config, wandb_logger)
 

@@ -15,7 +15,7 @@ class Trainer(pl.Trainer):
             verbose=True,
             save_last=False,
             save_top_k=1,
-            monitor="test_pearson",
+            monitor="val_pearson",
             mode="max",
         )
 
