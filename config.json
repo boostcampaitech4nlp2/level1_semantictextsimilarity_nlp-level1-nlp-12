@@ -1,10 +1,10 @@
 {
     "name": "STS",
     "accelerator": "cuda",
-    "checkpoint": "klue/roberta-base",
-    "model": "BaselineModel",
+    "checkpoint": "jhgan/ko-sbert-sts",
+    "model": "SentTransformer",
     "model_args":{
-        "architecture": "AutoModelForSequenceClassification",
+        "architecture": "AutoModel",
         "num_labels": 1
     },
     "batch_size": 32,
@@ -19,7 +19,7 @@
     "max_length": 128,
     "log_every_n_steps": 1,
     "metric": "pearson",
-    "data_loader": "BaselineDataloader",
+    "data_loader": "SentTransformerDataLoader",
     "data_loader_args": {
         "data_dir": "data/",
         "shuffle": true,

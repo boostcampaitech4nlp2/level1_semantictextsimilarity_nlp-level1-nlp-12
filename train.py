@@ -21,11 +21,12 @@ def main(config_parser):
 
     logger = config_parser.get_logger('train')
     configs = config_parser.config
+    logger.info(configs)
 
     # setup data_loader and model
-    dataloader_module = getattr(module_data, config_parser['data_loader'])(**configs)
-    model_module = getattr(module_model, config_parser['model'])(**configs)
-    logger.info(model_module)
+    data_module = getattr(module_data, config_parser['data_loader'])(**configs)
+    model = getattr(module_model, config_parser['model'])(**configs)
+    logger.info(model)
 
     # custom wandb logger & checkpoint_callback
     ########### more info ##############
@@ -60,12 +61,12 @@ def main(config_parser):
     )
     
     #if configs.pop('resume', None):
-    trainer.fit(model=model_module, datamodule=dataloader_module)
+    trainer.fit(model=model, datamodule=data_module)
     logger.info(f'Best checkpoint saved at {trainer.checkpoint_callback.best_model_path}')
-    trainer.test(model=model_module, datamodule=dataloader_module)
+    trainer.test(model=model, datamodule=data_module)
 
     """# Inference
-    predictions = trainer.predict(model=model_module, datamodule=dataloader_module)
+    predictions = trainer.predict(model=model, datamodule=data_module)
 
     # 예측된 결과를 형식에 맞게 반올림하여 준비합니다.
     predictions = list(round(float(i), 1) for i in torch.cat(predictions))

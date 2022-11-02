@@ -26,11 +26,11 @@ class BaselineModel(BaseModel):
 class SentTransformer(BaseModel):
     def __init__(self, **configs):
         '''
-        jhgan/ko-sbert-sts / AutoModel / SentTransformerDataLoader
         ref: 
             1. https://github.com/UKPLab/sentence-transformers/blob/master/examples/training/sts/training_stsbenchmark.py
             2. https://www.sbert.net/examples/training/sts/README.html#training-data
         '''
+        assert configs['model_args']['architecture'] == 'AutoModel'
         super().__init__(**configs) #"sentence-transformers/distiluse-base-multilingual-cased-v2"
 
         # use `SentenceTransformer` instead of  default huggignface architectures 
@@ -96,10 +96,13 @@ class SentTransformer(BaseModel):
         targets = batch['label'].to(cosine_scores.device) 
 
         loss = self.criterion(cosine_scores, targets)
-        self.log("val_loss", loss, batch_size=len(batch))
-        self.log("val_pearson", self.metric(cosine_scores, targets))
-    
-        return loss
+        score = self.metric(cosine_scores, targets)
+        #self.log("val_loss", loss)
+        #self.log("val_pearson", self.metric(cosine_scores, targets))
+        self.logger.log_metrics({
+            'val_loss' : loss,
+            'val_pearson' : score
+        }, )
 
     def test_step(self, batch, batch_idx):
         cosine_scores = self.forward(batch)
