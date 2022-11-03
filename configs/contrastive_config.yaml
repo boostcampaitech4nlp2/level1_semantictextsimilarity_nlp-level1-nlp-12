@@ -1,11 +1,11 @@
 
 wandb:
   project: sts
-  name: kbh
+  name: kjh
   info: Freezing1-3_neg_pair_sweep # ⭐
 
 path:
-  cl_train_path: ./data/contrastive_data/contrastive_train_1.csv
+  cl_train_path: ./data/contrastive_data/contrastive_train.csv
   cl_dev_path: ./data/contrastive_data/contrastive_dev.csv
   train_path: ./data/aug_data/train.AEDA.csv
   dev_path: ./data/raw_data/dev.csv

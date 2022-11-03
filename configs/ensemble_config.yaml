@@ -19,7 +19,8 @@ model:
   saved_name: roberta-large # ⭐ 저장할 모델 이름
   saved_checkpoint: checkpoints/model # model checkpoint 저장할 폴더 명
   saved_contrastive_checkpoint : checkpoints/contrastive
-  model_ckpt_path:  FreezingAll--epoch=11--test_pearson=0.000.ckpt # ⭐ model inference 시 사용할 ckpt 경로를 입력해주세요
+  model_ckpt_path:  Freezing1-3_neg_pair--epoch=12--val_pearson=0.918.ckpt # ⭐ model inference 시 사용할 ckpt 경로를 입력해주세요
+  model_ckpt_path2 : roberta-small--epoch=00--val_pearson=0.434
 
 loss_func: L1Loss # L1Loss | ...
 
@@ -27,7 +28,7 @@ train:
   seed: 42
   gpus: 1
   batch_size: 8
-  max_epoch: 30
+  max_epoch: 1
   learning_rate: 1e-5
 
 optimizer: AdamW

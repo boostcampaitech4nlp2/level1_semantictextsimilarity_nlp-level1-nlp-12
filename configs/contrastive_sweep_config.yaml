@@ -9,7 +9,7 @@ parameters:
   batch_size:
     values: [8]
   margin:
-    values: [1.0, 1.5, 2.0, 2.5, 3.0]
+    values: [1.0, 1.5]
   seed:
     distribution: int_uniform
     min: 1

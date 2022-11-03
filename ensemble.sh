@@ -1,0 +1,1 @@
+python3 ensemble_inference.py --config ensemble_config
