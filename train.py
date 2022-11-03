@@ -75,6 +75,10 @@ def main(cfg):
         cfg.path.dev_path,
         cfg.path.test_path,
         cfg.path.predict_path,
+        cfg.train.bce,
+        cfg.train.k,
+        cfg.train.split_seed,
+        cfg.train.num_splits,
     )
     model = Model(cfg)
 

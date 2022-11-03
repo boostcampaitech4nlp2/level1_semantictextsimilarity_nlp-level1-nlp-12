@@ -1,8 +1,8 @@
 project: sts
 name: shchoi
 path:
-    train_path: /opt/ml/wandb_base_project/data/petition_aug.csv
-    dev_path: /opt/ml/wandb_base_project/data/dev.csv
+    train_path: /opt/ml/wandb_base_project/data/train_auged.csv
+    dev_path:  /opt/ml/wandb_base_project/data/dev.csv
     test_path: /opt/ml/wandb_base_project/data/dev.csv
     predict_path: /opt/ml/wandb_base_project/data/test.csv
 
@@ -22,6 +22,10 @@ train:
     max_epoch: 30
     learning_rate: 0.0000074842028984369805
     logging_step: 1
+    bce: True
+    k: 1
+    split_seed: 12345
+    num_splits: 10
 
 loss: L1Loss
 
@@ -34,7 +38,7 @@ optimizer: #torch.optim에 존재하는 optimizer만 사용가능. 함수명과 
 lr_scheduler: #torch.optim.lr_cheduler에 존재하는 lr_scheduler만 사용가능.
     name: StepLR
     args:
-        step_size: 40
+        step_size: 30
         gamma: 0.1
 
 

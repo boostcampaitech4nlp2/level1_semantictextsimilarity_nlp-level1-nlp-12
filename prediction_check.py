@@ -9,6 +9,7 @@ import random
 import os
 import numpy as np
 import pandas as pd
+from model.model import Model
 
 
 def rsetattr(obj, attr, val):
@@ -50,7 +51,7 @@ def main(cfg):
         cfg.path.dev_path,  # 여기도 같이 바꿔주면 된다.
         cfg.path.dev_path,  # 여기를 바꿔주면 된다.
     )
-    model = torch.load(f"{cfg.model.saved_name}.pt")
+    model = Model.load_from_checkpoint("./checkpoint/epoch=9-step=11770.ckpt")
 
     trainer = pl.Trainer(
         accelerator="gpu",
@@ -78,7 +79,7 @@ def main(cfg):
         )
     wrong_df = pd.DataFrame(wrongs, columns=["text", "pred", "target", "diff"])
     wrong_df = wrong_df.sort_values("diff", ascending=False)
-    wrong_df.to_csv("./data/wrongs.csv")
+    wrong_df.to_csv("./data/wrongs_petition_aug_test.csv")
 
 
 if __name__ == "__main__":

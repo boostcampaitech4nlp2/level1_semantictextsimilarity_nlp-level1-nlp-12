@@ -9,6 +9,7 @@ import random
 import os
 import numpy as np
 import pandas as pd
+from model.model import Model
 
 
 def rsetattr(obj, attr, val):
@@ -49,9 +50,13 @@ def main(cfg):
         cfg.path.dev_path,
         cfg.path.test_path,
         cfg.path.predict_path,
+        cfg.train.bce,
+        cfg.train.k,
+        cfg.train.split_seed,
+        cfg.train.num_splits,
     )
-    model = torch.load(f"{cfg.model.saved_name}.pt")
-
+    model1 = Model.load_from_checkpoint("./checkpoint/epoch=15-step=16112.ckpt")
+    model2 = Model.load_from_checkpoint(".")
     trainer = pl.Trainer(
         accelerator="gpu",
         devices=cfg.train.gpus,
@@ -60,7 +65,8 @@ def main(cfg):
         log_every_n_steps=cfg.train.logging_step,
     )
 
-    predictions = trainer.predict(model=model, datamodule=dataloader)
+    predictions1 = trainer.predict(model=model1, datamodule=dataloader)
+    predictions2 = trainer.perdict(model=model2, datamodule=dataloader)
 
     predictions = list(round(float(i), 1) for i in torch.cat(predictions))
 
