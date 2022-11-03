@@ -54,8 +54,8 @@ def main(config):
         config.model.name,
         config.train.batch_size,
         config.data.shuffle,
-        config.path.train_path,
-        config.path.dev_path,
+        config.path.cl_train_path,
+        config.path.cl_dev_path,
     )
 
     print("\033[31m" + "⚡ Contrastive get model" + "\033[0m")
@@ -90,17 +90,17 @@ def main(config):
     ###########################################################################
 
     ###################🥶1~3 layer만 Freezing🥶###############################
-    # for name, param in model.named_parameters():
-    #     if name.split(".")[1] == "electra_model":
-    #         if name.split(".")[6] in ["0", "1", "2"]:
-    #             param.requires_grad = False
+    for name, param in model.named_parameters():
+        if name.split(".")[1] == "electra_model":
+            if name.split(".")[6] in ["0", "1", "2"]:
+                param.requires_grad = False
     ###########################################################################
 
     ###################🥶뒤에서 3개의 layer만 Freezing🥶######################
-    for name, param in model.named_parameters():
-        if name.split(".")[1] == "electra_model":
-            if name.split(".")[6] in ["9", "10", "11"]:
-                param.requires_grad = False
+    # for name, param in model.named_parameters():
+    #     if name.split(".")[1] == "electra_model":
+    #         if name.split(".")[6] in ["9", "10", "11"]:
+    #             param.requires_grad = False
     ###########################################################################
 
     print("\033[32m" + "⚡ get trainer" + "\033[0m")
@@ -114,11 +114,13 @@ def main(config):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, default="base_config")
+    parser.add_argument("--config", type=str, default="contrastive_config")
 
     # sweep- 하이퍼파라미터 튜닝 인자
     parser.add_argument("--sweep", type=int, default=0)
     parser.add_argument("--batch_size", type=int, default=2)
+    parser.add_argument("--margin", type=float, default=1.0)
+    parser.add_argument("--seed", type=int, default=42)
 
     args, _ = parser.parse_known_args()
 
@@ -127,6 +129,8 @@ if __name__ == "__main__":
 
     if args.sweep == 1:
         config.train.batch_size = args.batch_size
+        config.cl_loss_func.args.margins = args.margin
+        config.train.seed = args.seed
 
     seed_everything(config.train.seed)
 

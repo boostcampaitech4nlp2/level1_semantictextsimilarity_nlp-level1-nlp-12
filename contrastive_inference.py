@@ -62,7 +62,7 @@ def main(config):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, default="base_config")
+    parser.add_argument("--config", type=str, default="contrastive_config")
     args, _ = parser.parse_known_args()
     config = OmegaConf.load(f"./configs/{args.config}.yaml")
 

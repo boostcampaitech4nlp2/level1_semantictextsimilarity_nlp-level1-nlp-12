@@ -308,10 +308,9 @@ class ContrastiveDataLoader(pl.LightningDataModule):
             dataframe.iterrows(), desc="tokenizing", total=len(dataframe)
         ):
             temp = dict()
-            main_sent = item["sentence_1"]
-            pos_pair = item["sentence_2"]
-            neg_idx = (idx + 1) % len(dataframe)
-            neg_pair_1 = dataframe.iloc[neg_idx]["sentence_1"]
+            main_sent = item["main_sentence"]
+            pos_pair = item["pos_sentence"]
+            neg_pair = item["neg_sentence"]
 
             main_tokenized = self.tokenizer(
                 main_sent,
@@ -323,7 +322,7 @@ class ContrastiveDataLoader(pl.LightningDataModule):
                 pos_pair, add_special_tokens=True, padding="max_length", truncation=True
             )
             neg_tokenized = self.tokenizer(
-                neg_pair_1,
+                neg_pair,
                 add_special_tokens=True,
                 padding="max_length",
                 truncation=True,
@@ -342,9 +341,7 @@ class ContrastiveDataLoader(pl.LightningDataModule):
         return data
 
     def preprocessing(self, dataframe):
-        pos_data = dataframe[dataframe["binary-label"] == 1].reset_index(drop=True)
-
-        inputs = self.tokenizing(pos_data)
+        inputs = self.tokenizing(dataframe)
 
         return inputs
 

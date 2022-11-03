@@ -1,0 +1,1 @@
+wandb sweep configs/contrastive_sweep_config.yaml

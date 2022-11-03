@@ -1,0 +1,44 @@
+
+wandb:
+  project: sts
+  name: kbh
+  info: Freezing1-3_neg_pair_sweep # ⭐
+
+path:
+  cl_train_path: ./data/contrastive_data/contrastive_train_1.csv
+  cl_dev_path: ./data/contrastive_data/contrastive_dev.csv
+  train_path: ./data/aug_data/train.AEDA.csv
+  dev_path: ./data/raw_data/dev.csv
+  test_path: ./data/raw_data/dev.csv
+  predict_path: ./data/raw_data/test.csv
+
+data:
+  shuffle: True
+
+model:
+  name: beomi/KcELECTRA-base # klue/roberta-small | beomi/KcELECTRA-base | klue/bert-base | xlm-roberta-base | jhgan/ko-sroberta-sts
+  saved_name: contrastive_trained # ⭐ 저장할 모델 이름
+  saved_checkpoint: checkpoints/model # model checkpoint 저장할 폴더 명
+  saved_contrastive_checkpoint : checkpoints/contrastive
+  model_ckpt_path:  FreezingAll--epoch=15--val_pearson=0.901.ckpt # ⭐ model inference 시 사용할 ckpt 경로를 입력해주세요
+
+loss_func: L1Loss # L1Loss | ...
+
+train:
+  seed: 42
+  gpus: 1
+  batch_size: 8
+  max_epoch: 30
+  learning_rate: 1e-5
+
+optimizer: AdamW
+
+scheduler: StepLR
+
+cl_loss_func:
+  name: TripletMarginLoss
+  args:
+    margin: 1.0
+
+
+

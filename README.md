@@ -85,3 +85,12 @@ $ sh sweep.sh
 ## bayes나 random 탐색은 프로세스를 직접 종료하기 전까지 계속 탐색하므로 LIMIT_NUM으로 학습 횟수를 제한할 수 있다.
 $ wandb agent --count [LIMIT_NUM] [SWEEPID] 
 ```
+
+## How to sweep Contrastive Learning
+```bash
+$ sh cl_sweep.sh
+
+# Launch agents
+## bayes나 random 탐색은 프로세스를 직접 종료하기 전까지 계속 탐색하므로 LIMIT_NUM으로 학습 횟수를 제한할 수 있다.
+$ wandb agent --count [LIMIT_NUM] [SWEEPID] 
+```
