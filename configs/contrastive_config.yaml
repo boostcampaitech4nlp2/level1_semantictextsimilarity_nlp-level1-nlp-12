@@ -7,7 +7,7 @@ wandb:
 path:
   cl_train_path: ./data/contrastive_data/contrastive_train.csv
   cl_dev_path: ./data/contrastive_data/contrastive_dev.csv
-  train_path: ./data/aug_data/train.AEDA.csv
+  train_path: ./data/aug_data/train.AEDA.sent12changed.csv
   dev_path: ./data/raw_data/dev.csv
   test_path: ./data/raw_data/dev.csv
   predict_path: ./data/raw_data/test.csv
@@ -20,14 +20,14 @@ model:
   saved_name: contrastive_trained # ⭐ 저장할 모델 이름
   saved_checkpoint: checkpoints/model # model checkpoint 저장할 폴더 명
   saved_contrastive_checkpoint : checkpoints/contrastive
-  model_ckpt_path:  FreezingAll--epoch=15--val_pearson=0.901.ckpt # ⭐ model inference 시 사용할 ckpt 경로를 입력해주세요
+  model_ckpt_path:  Freezing1-3_neg_pair_sweep--epoch=11--val_pearson=0.919.ckpt # ⭐ model inference 시 사용할 ckpt 경로를 입력해주세요
 
 loss_func: L1Loss # L1Loss | ...
 
 train:
   seed: 42
   gpus: 1
-  batch_size: 8
+  batch_size: 16
   max_epoch: 30
   learning_rate: 1e-5
 
