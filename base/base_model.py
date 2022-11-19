@@ -1,31 +1,35 @@
-import torch.nn as nn
 from abc import abstractmethod
-import pytorch_lightning as pl
 import transformers
+import torch.nn as nn
+import torch.optim as optim
+import pytorch_lightning as pl
+import model.metric as module_metric
+import model.loss as module_loss
 
 
 class BaseModel(pl.LightningModule):
     """
     Base class for all models
     """
-    def __init__(
-        self,
-        checkpoint,
-        criterion,
-        metrics,
-        optimizer,
-        lr_scheduler,
-        **kwargs
-    ):
+    def __init__(self, **configs):
         super().__init__()
         self.save_hyperparameters()
+        model_args = configs['model_args']
+        self.architecture = model_args.pop('architecture', None)
 
-        # pretrained model name or checkpoint path
-        self.checkpoint = checkpoint 
+        self.checkpoint = configs['checkpoint']
+        self.batch_size = configs['batch_size']
+        self.lr = configs.pop('lr', 1e-5)
+        self.lr_scheduler = configs.pop('lr_scheduler', None)
+        if self.lr_scheduler is not None:
+            self.lr_scheduler_args = configs.pop('lr_scheduler_args')
+        self.max_epochs = configs.pop('max_epochs')
+        self.optimizer = configs['optimizer']
+        self.criterion = getattr(module_loss, configs['criterion'])
+        self.metric = getattr(module_metric, configs['metric'])
 
         # get pretrained model from huggingface hub
-        arch = kwargs.pop('architecture', None)
-        if arch is None or arch not in [
+        if self.architecture is None or self.architecture not in [
             'AutoModel', 
             'AutoModelForPreTraining',
             'AutoModelForCausalLM',
@@ -37,29 +41,18 @@ class BaseModel(pl.LightningModule):
             'AutoModelForTokenClassification',
             'AutoModelForQuestionAnswering'
         ]:
-            raise ValueError("The given architecture is None or not available at huggingface.")
+            raise ValueError(f"The given architecture {self.architecture} is None or not available at huggingface.")
 
-        self.lm = getattr(transformers, arch).from_pretrained(
+        self.lm = getattr(transformers, self.architecture).from_pretrained(
             pretrained_model_name_or_path=self.checkpoint,
-            **kwargs
+            **model_args
         )
-
-        # criterion for calculating loss
-        self.criterion = criterion
-
-        # metrics
-        self.metric_fns = metrics
-
-        # optimizer functions 
-        self.optimizer = optimizer
-        self.lr_scheduler = lr_scheduler
 
     @abstractmethod
     def forward(self, *inputs):
         """
         Forward pass logic
-
-        :return: Model output
+        Requires `forward` in the child class 
         """
         raise NotImplementedError
 
@@ -75,17 +68,21 @@ class BaseModel(pl.LightningModule):
         x, y = batch
         logits = self.forward(x)
         loss = self.criterion(logits, y.float())
+        score = self.metric(logits.squeeze(), y.squeeze())
         self.log("val_loss", loss)
-        for metric_fn in self.metric_fns:
-            self.log("val" + metric_fn.__name__, metric_fn(logits.squeeze(), y.squeeze()))
+        self.log("val_pearson", score)
 
         return loss
 
     def test_step(self, batch, batch_idx):
         x, y = batch
         logits = self.forward(x)
-        for metric_fn in self.metric_fns:
-            self.log("test" + metric_fn.__name__, metric_fn(logits.squeeze(), y.squeeze()))
+        #loss = self.criterion(logits, y.float())
+        score = self.metric(logits.squeeze(), y.squeeze())
+        #self.log("test_loss", loss)
+        self.log("test_pearson", score)
+        #return loss
+
 
     def predict_step(self, batch, batch_idx):
         x = batch
@@ -94,20 +91,27 @@ class BaseModel(pl.LightningModule):
         return logits.squeeze()
 
     def configure_optimizers(self):
-        self.optimizer = self.optimizer(params=self.parameters())
+        optimizer = getattr(optim, self.optimizer)(
+            self.parameters(),
+            self.lr
+        )
+
         if self.lr_scheduler:
-            self.lr_scheduler = self.lr_scheduler(optimizer=self.optimizer)
+            lr_scheduler = getattr(optim.lr_scheduler, self.lr_scheduler)(
+                    optimizer,
+                    **self.lr_scheduler_args
+                    )
             return {
-                "optimizer": self.optimizer,
-                "lr_scheduler": self.lr_scheduler
+                "optimizer": optimizer,
+                "lr_scheduler": lr_scheduler
             }
         else:
-            return self.optimizer
+            return optimizer
 
     def __str__(self):
         """
         Model prints with number of trainable parameters
         """
         model_parameters = filter(lambda p: p.requires_grad, self.parameters())
-        params = sum([p.numel() for p in model_parameters]) # sum([np.prod(p.size()) for p in model_parameters])
+        params = sum([p.numel() for p in model_parameters if p is not None]) 
         return super().__str__() + '\nTrainable parameters: {}'.format(params)
